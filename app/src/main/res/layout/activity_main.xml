@@ -6,23 +6,25 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-<!--    <Button-->
-<!--        android:id="@+id/button_paired"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Paired Bluetooth Devices" />-->
-
+    <Button
+        android:id="@+id/button_paired"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start allBlue Service"
+        tools:ignore="MissingConstraints" />
 
     <ListView
         android:id="@+id/bluetooth_paired"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+        android:layout_width="wrap_content"
+        tools:ignore="MissingConstraints" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_Paired_Devices"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="49dp" />
+        tools:layout_editor_absoluteY="49dp"
+        tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
