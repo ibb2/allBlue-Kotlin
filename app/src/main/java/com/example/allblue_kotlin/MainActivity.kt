@@ -83,13 +83,9 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onStop(br) {
-        super.onStop()
-        unregisterReceiver(br)
-    }
-
-    override fun onDestroy(br) {
+    override fun onDestroy() {
         super.onDestroy()
+        val br: BroadcastReceiver = MyBroadcastReceiver()
         unregisterReceiver(br)
     }
 
@@ -97,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name: String = "Main Activity Notificaion"
+            val name = "Main Activity Notificaion"
             val descriptionText = "Notifications of allBlue Application"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_DEFAULT_IMPORTANCE, name, importance).apply {
@@ -115,7 +111,7 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     private val TAG2 = "MyBroadcastReceiver"
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        musicStatusBool = intent!!.getBooleanExtra("data", false) ?: return
+        musicStatusBool = intent!!.getBooleanExtra("data", false)
 
         Log.i(TAG2, "Intent received")
         Log.i(TAG2, "$intent")
