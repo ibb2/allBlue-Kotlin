@@ -28,11 +28,11 @@ private var musicStatusBool = false
 
 class MainActivity : AppCompatActivity() {
 
-    private var br: BroadcastReceiver = MyBroadcastReceiver()
-    private lateinit var binding: ActivityMainBinding
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
-    private val REQUEST_ENABLE_BT = 1
     private val devices_list : ArrayList<BluetoothDevice> = ArrayList()
+    private val REQUEST_ENABLE_BT = 1
+    private lateinit var binding: ActivityMainBinding
+
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -75,19 +75,20 @@ class MainActivity : AppCompatActivity() {
 
         startService(Intent(this, MediaPlayingService::class.java))
 
+        val br: BroadcastReceiver = MyBroadcastReceiver()
         val filter = IntentFilter("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED").apply {
-            addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
+            addAction("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED")
         }
         registerReceiver(br, filter)
 
     }
 
-    override fun onStop() {
+    override fun onStop(br) {
         super.onStop()
         unregisterReceiver(br)
     }
 
-    override fun onDestroy() {
+    override fun onDestroy(br) {
         super.onDestroy()
         unregisterReceiver(br)
     }
@@ -108,7 +109,6 @@ class MainActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
-
 }
 
 class MyBroadcastReceiver : BroadcastReceiver() {
@@ -117,9 +117,9 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         musicStatusBool = intent!!.getBooleanExtra("data", false) ?: return
 
-        if (musicStatusBool) {
-            Log.i(TAG2, "$musicStatusBool")
-        }
+        Log.i(TAG2, "Intent received")
+        Log.i(TAG2, "$intent")
+        Log.i(TAG2, "$musicStatusBool")
     }
 }
 
