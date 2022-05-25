@@ -56,12 +56,12 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
-                    Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus")
-                    Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive")
+                    Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus}")
+                    Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive}")
                 }
 
-                Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus")
-                Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive")
+                Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus}")
+                Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive}")
                 Thread.sleep(5000)
             }
         }
