@@ -28,9 +28,6 @@ class MediaPlayingService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // TODO Detect music playing
 
-        val AudioManager: AudioManager = getSystemService(AudioManager::class.java)
-        val AudioManagerActive: Boolean = AudioManager.isMusicActive
-
         val pendingIntent: PendingIntent = Intent(this, MainActivity::class.java).let { notificationIntent ->
             PendingIntent.getActivity(this, 0, notificationIntent,
                 PendingIntent.FLAG_IMMUTABLE) }
@@ -45,10 +42,15 @@ class MediaPlayingService: Service() {
             .build()
 
         thread(true) {
+            Log.i(TAG, "New Initialised thread")
+
             while (true) {
+                val AudioManager: AudioManager = getSystemService(AudioManager::class.java)
+                val AudioManagerActive: Boolean = AudioManager.isMusicActive
+
                 audioPlayingStatus = false
 
-                if (AudioManagerActive == true) {
+                if (AudioManagerActive) {
                     audioPlayingStatus = true
 
                     Intent().also { intent ->
@@ -56,18 +58,19 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
+                    Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus")
+                    Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive")
                 }
-                Log.i(TAG, "New Initialised thread")
 
+                Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus")
+                Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive")
                 Thread.sleep(5000)
             }
         }
 
         // Start Foreground Service
         startForeground(ONGOING_NOTIFICATION_ID, notification)
-
-        Log.i(TAG, "Foreground Service running")
-        Log.i(TAG, "Is Music Active: $audioPlayingStatus")
+        Log.d(TAG, "Foreground Service running")
 
         return START_REDELIVER_INTENT
     }
