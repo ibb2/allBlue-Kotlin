@@ -1,16 +1,16 @@
 package com.example.allblue_kotlin
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.media.AudioManager
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -19,18 +19,21 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.allblue_kotlin.databinding.ActivityMainBinding
 import com.example.allblue_kotlin.databinding.BluetoothDeviceListBinding
 
+private var musicStatusBool = false
+
 class MainActivity : AppCompatActivity() {
 
+    private var br: BroadcastReceiver = MyBroadcastReceiver()
     private lateinit var binding: ActivityMainBinding
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
     private val REQUEST_ENABLE_BT = 1
     private val devices_list : ArrayList<BluetoothDevice> = ArrayList()
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
@@ -71,6 +74,22 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerViewPairedDevices.adapter = MainAdapter(devices_list)
 
         startService(Intent(this, MediaPlayingService::class.java))
+
+        val filter = IntentFilter("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED").apply {
+            addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
+        }
+        registerReceiver(br, filter)
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(br)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(br)
     }
 
     fun createNotificationChannel() {
@@ -90,6 +109,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+}
+
+class MyBroadcastReceiver : BroadcastReceiver() {
+    private val TAG2 = "MyBroadcastReceiver"
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        musicStatusBool = intent!!.getBooleanExtra("data", false) ?: return
+
+        if (musicStatusBool) {
+            Log.i(TAG2, "$musicStatusBool")
+        }
+    }
 }
 
 class MainAdapter(pairedDevice: ArrayList<BluetoothDevice>?) : RecyclerView.Adapter<CustomViewHolder>() {
