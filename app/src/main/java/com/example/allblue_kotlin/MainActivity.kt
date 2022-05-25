@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -32,8 +31,6 @@ class MainActivity : AppCompatActivity() {
     private val devices_list : ArrayList<BluetoothDevice> = ArrayList()
     private val REQUEST_ENABLE_BT = 1
     private lateinit var binding: ActivityMainBinding
-
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
@@ -105,6 +102,14 @@ class MainActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
+}
+
+class ConnectBluetoohDevice {
+    //TODO connect to selected bluetooth device
+}
+
+class StoreBluetoothDevice {
+    //TODO store selected bluetooth information
 }
 
 class MyBroadcastReceiver : BroadcastReceiver() {
