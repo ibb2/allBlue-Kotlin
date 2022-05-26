@@ -8,23 +8,49 @@
 
     <Button
         android:id="@+id/button_paired"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="243dp"
+        android:layout_height="54dp"
         android:text="Start allBlue Service"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.876"
         tools:ignore="MissingConstraints" />
 
     <ListView
         android:id="@+id/bluetooth_paired"
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         tools:ignore="MissingConstraints" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_Paired_Devices"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="49dp"
+        android:layout_width="409dp"
+        android:layout_height="214dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.303"
         tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="411dp"
+        android:layout_height="54dp"
+        android:text="Paired Bluetooth Devices"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.131" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
