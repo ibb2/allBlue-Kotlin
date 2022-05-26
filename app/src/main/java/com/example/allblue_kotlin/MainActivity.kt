@@ -10,11 +10,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.MacAddress
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -56,10 +58,6 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
-        binding.buttonPaired.setOnClickListener {
-            startService(Intent(this, MediaPlayingService::class.java))
-        }
-
         // Nullable items returning list of Bluetooth Objects of connected devices
         val pairedDevice: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
         pairedDevice?.forEach { device ->
@@ -68,8 +66,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.recyclerViewPairedDevices.layoutManager = LinearLayoutManager(this)
-        binding.recyclerViewPairedDevices.adapter = MainAdapter(devices_list)
+        binding.recyclerViewPairedDevices.adapter = MainAdapter(devices_list, {position -> onItemClick(position)})
 
+        binding.buttonPaired.setOnClickListener {
+            startService(Intent(this, MediaPlayingService::class.java))
+        }
         startService(Intent(this, MediaPlayingService::class.java))
 
         val br: BroadcastReceiver = MyBroadcastReceiver()
@@ -77,7 +78,11 @@ class MainActivity : AppCompatActivity() {
             addAction("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED")
         }
         registerReceiver(br, filter)
+    }
 
+    private fun onItemClick(position: Int) {
+        val TAG3 = "Recyclerview onClickListener"
+        Log.d(TAG3, "On click is functional $position")
     }
 
     override fun onDestroy() {
@@ -104,7 +109,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class ConnectBluetoohDevice {
+class ConnectBluetoothDevice {
     //TODO connect to selected bluetooth device
 }
 
@@ -123,29 +128,3 @@ class MyBroadcastReceiver : BroadcastReceiver() {
         Log.i(TAG2, "$musicStatusBool")
     }
 }
-
-class MainAdapter(pairedDevice: ArrayList<BluetoothDevice>?) : RecyclerView.Adapter<CustomViewHolder>() {
-
-    private val pDevice = pairedDevice
-
-    override fun getItemCount(): Int {
-        Log.i("getItemCount", pDevice.toString())
-        return (pDevice?.size ?: Int) as Int
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomViewHolder {
-        val binding = BluetoothDeviceListBinding
-            .inflate(LayoutInflater.from(parent.context), parent, false)
-        return CustomViewHolder(binding)
-    }
-
-    @SuppressLint("MissingPermission")
-    override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
-        val pDevicePos = pDevice?.get(position)
-        holder.binding.textViewName.text = pDevicePos.toString()
-//        holder.binding.textViewAddress.text = pDevicePos.address
-    }
-
-}
-
-class CustomViewHolder (val binding: BluetoothDeviceListBinding): RecyclerView.ViewHolder(binding.root){}
