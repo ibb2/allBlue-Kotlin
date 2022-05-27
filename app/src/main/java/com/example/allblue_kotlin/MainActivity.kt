@@ -1,5 +1,6 @@
 package com.example.allblue_kotlin
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.MacAddress
 import android.os.Build
 import android.os.Bundle
@@ -20,10 +22,13 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.allblue_kotlin.databinding.ActivityMainBinding
 import com.example.allblue_kotlin.databinding.BluetoothDeviceListBinding
+import org.json.JSONObject
+import java.io.File
 
 private var musicStatusBool = false
 
@@ -32,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
     private val devices_list : ArrayList<BluetoothDevice> = ArrayList()
     private val REQUEST_ENABLE_BT = 1
+    private val TAG = "Main Activity"
     private lateinit var binding: ActivityMainBinding
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -62,7 +68,6 @@ class MainActivity : AppCompatActivity() {
         val pairedDevice: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
         pairedDevice?.forEach { device ->
             devices_list.add(device)
-            Toast.makeText(this, "$device", Toast.LENGTH_LONG).show()
         }
 
         binding.recyclerViewPairedDevices.layoutManager = LinearLayoutManager(this)
@@ -81,8 +86,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onItemClick(position: Int) {
+        // Save information of selected bluetooth device to connect to
         val TAG3 = "Recyclerview onClickListener"
+        val devicePos = devices_list[position]
+
         Log.d(TAG3, "On click is functional $position")
+        Log.d(TAG3, "${devicePos.name}, ${devicePos.address}")
+
+        // Using preferences, to store key-value pairs
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putInt("number", position)
+            putString("name", devicePos.name)
+            putString("address", devicePos.address)
+            apply()
+        }
+
+        var pos = sharedPref.getInt("number", 0)
+        Log.d(TAG3, "$pos")
     }
 
     override fun onDestroy() {
