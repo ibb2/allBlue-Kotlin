@@ -70,6 +70,12 @@ class MainActivity : AppCompatActivity() {
             devices_list.add(device)
         }
 
+        // Display selected device to connect to
+        val sharedPref = getPreferences(Context.MODE_PRIVATE) ?: return
+        binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
+        binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
+
+        // Recyclerview
         binding.recyclerViewPairedDevices.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewPairedDevices.adapter = MainAdapter(devices_list, {position -> onItemClick(position)})
 
@@ -102,8 +108,10 @@ class MainActivity : AppCompatActivity() {
             apply()
         }
 
-        var pos = sharedPref.getInt("number", 0)
-        Log.d(TAG3, "$pos")
+        binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
+        binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
+
+        Log.d(TAG3, "${sharedPref.getInt("number", 0)}")
     }
 
     override fun onDestroy() {
