@@ -4,9 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
+import android.bluetooth.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -29,8 +27,12 @@ import com.example.allblue_kotlin.databinding.ActivityMainBinding
 import com.example.allblue_kotlin.databinding.BluetoothDeviceListBinding
 import org.json.JSONObject
 import java.io.File
+import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
 
 private var musicStatusBool = false
+private lateinit var bluetoothAdapter: BluetoothAdapter
 
 class MainActivity : AppCompatActivity() {
 
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         createNotificationChannel()
 
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
-        val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+        bluetoothAdapter = bluetoothManager.adapter
 
         if (bluetoothAdapter?.isEnabled == false){
             Toast.makeText(this, "Bluetooth not supported on device", Toast.LENGTH_LONG).show()
@@ -100,9 +102,9 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG3, "${devicePos.name}, ${devicePos.address}")
 
         // Using preferences, to store key-value pairs
-        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("Selected Bluetooth Device",Context.MODE_PRIVATE)
         with(sharedPref.edit()) {
-            putInt("number", position)
+            putString("uuid", devicePos.uuids.toString())
             putString("name", devicePos.name)
             putString("address", devicePos.address)
             apply()
@@ -138,10 +140,6 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-class ConnectBluetoothDevice {
-    //TODO connect to selected bluetooth device
-}
-
 class StoreBluetoothDevice {
     //TODO store selected bluetooth information
 }
@@ -152,8 +150,55 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         musicStatusBool = intent!!.getBooleanExtra("data", false)
 
+        // Connect to chosen bluetooth device.
+        val cThread = ConnectThread(context)
+        cThread.run()
+        cThread.cancel()
+
+        // Logging information of intent and received extra data
         Log.i(TAG2, "Intent received")
         Log.i(TAG2, "$intent")
         Log.i(TAG2, "$musicStatusBool")
     }
+
+    @SuppressLint("MissingPermission")
+    private inner class ConnectThread(context: Context?) : Thread() {
+
+        private val sharedPref = context?.getSharedPreferences("Selected Bluetooth Device", Context.MODE_PRIVATE)
+        val bluetoothDeviceUUID: UUID = UUID.fromString(sharedPref?.getString("uuid", ""))
+        val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(sharedPref?.getString("address", ""))
+
+        private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
+            device.createRfcommSocketToServiceRecord(bluetoothDeviceUUID)
+        }
+
+        public override fun run() {
+            // Cancel discovery because it otherwise slows down the connection.
+            bluetoothAdapter.cancelDiscovery()
+
+            mmSocket?.let { socket ->
+                // Connect to the remote device through the socket. This call blocks
+                // until it succeeds or throws an exception.
+                try {
+                    socket.connect()
+                } catch (e: Exception) {
+                    Log.d(TAG2, "Not able to connect, $e")
+                }
+
+                // The connection attempt succeeded. Perform work associated with
+                // the connection in a separate thread.
+                // manageMyConnectedSocket(socket)
+            }
+        }
+
+        // Closes the client socket and causes the thread to finish.
+        fun cancel() {
+            try {
+                mmSocket?.close()
+            } catch (e: IOException) {
+                Log.e(TAG2, "Could not close the client socket", e)
+            }
+        }
+    }
+
 }

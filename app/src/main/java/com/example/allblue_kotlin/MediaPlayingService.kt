@@ -1,19 +1,29 @@
 package com.example.allblue_kotlin
 
+import android.Manifest
 import android.R
 import android.app.*
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import java.util.*
+import java.util.prefs.Preferences
 import kotlin.concurrent.thread
+import java.util.UUID
 
 
 class MediaPlayingService: Service() {
 
+    private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
     private val ONGOING_NOTIFICATION_ID = 1
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
     private val TAG = "Media Playing Service"
@@ -72,6 +82,19 @@ class MediaPlayingService: Service() {
 
         return START_REDELIVER_INTENT
     }
+
+//    private inner class ConnectBluetoothDevices {
+//        fun connect() {
+//            val sharedPref = getSharedPreferences("Selected Bluetooth Device", Context.MODE_PRIVATE)
+//
+//            try {
+//                val bluetoothDeviceObj = sharedPref.getString("uuid", "")
+//                bluetoothDeviceObj.connect()
+//            } catch (e: Exception) {
+//
+//            }
+//        }
+//    }
 }
 
 
