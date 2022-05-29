@@ -23,7 +23,6 @@ import java.util.UUID
 
 class MediaPlayingService: Service() {
 
-    private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
     private val ONGOING_NOTIFICATION_ID = 1
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
     private val TAG = "Media Playing Service"

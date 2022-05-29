@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.net.MacAddress
 import android.os.Build
 import android.os.Bundle
+import android.os.ParcelUuid
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.allblue_kotlin.databinding.ActivityMainBinding
@@ -32,6 +34,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 private var musicStatusBool = false
+private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
 private lateinit var bluetoothAdapter: BluetoothAdapter
 
 class MainActivity : AppCompatActivity() {
@@ -56,18 +59,18 @@ class MainActivity : AppCompatActivity() {
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothAdapter = bluetoothManager.adapter
 
-        if (bluetoothAdapter?.isEnabled == false){
+        if (!bluetoothAdapter.isEnabled){
             Toast.makeText(this, "Bluetooth not supported on device", Toast.LENGTH_LONG).show()
         }
 
-        if (bluetoothAdapter?.isEnabled == false) {
+        if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             @Suppress("DEPRECATION")
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
         // Nullable items returning list of Bluetooth Objects of connected devices
-        val pairedDevice: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+        val pairedDevice: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
         pairedDevice?.forEach { device ->
             devices_list.add(device)
         }
@@ -93,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(br, filter)
     }
 
+    @SuppressLint("MissingPermission")
     private fun onItemClick(position: Int) {
         // Save information of selected bluetooth device to connect to
         val TAG3 = "Recyclerview onClickListener"
@@ -103,12 +107,16 @@ class MainActivity : AppCompatActivity() {
 
         // Using preferences, to store key-value pairs
         val sharedPref = getSharedPreferences("Selected Bluetooth Device",Context.MODE_PRIVATE)
+        val parcelUUID = devicePos.getUuids()
+        val asString = parcelUUID[0].toString()
         with(sharedPref.edit()) {
-            putString("uuid", devicePos.uuids.toString())
+            putString("uuid", asString)
             putString("name", devicePos.name)
-            putString("address", devicePos.address)
+            putString("address", devicePos.address.toString())
             apply()
         }
+
+        Log.d(TAG3, "UUID on click: ${asString}")
 
         binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
         binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
@@ -165,20 +173,25 @@ class MyBroadcastReceiver : BroadcastReceiver() {
     private inner class ConnectThread(context: Context?) : Thread() {
 
         private val sharedPref = context?.getSharedPreferences("Selected Bluetooth Device", Context.MODE_PRIVATE)
-        val bluetoothDeviceUUID: UUID = UUID.fromString(sharedPref?.getString("uuid", ""))
-        val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(sharedPref?.getString("address", ""))
+        val bluetoothDeviceUUID: UUID = UUID.fromString(sharedPref?.getString("uuid",
+            MY_UUID.toString()))
+        val macAddress: String? = sharedPref?.getString("address", MY_UUID.toString())
+        val device = bluetoothAdapter.getRemoteDevice(macAddress)
+
 
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            device.createRfcommSocketToServiceRecord(bluetoothDeviceUUID)
+            Log.d(TAG2, "UUID: $bluetoothDeviceUUID")
+            device?.createRfcommSocketToServiceRecord(bluetoothDeviceUUID)
         }
 
-        public override fun run() {
+        override fun run() {
             // Cancel discovery because it otherwise slows down the connection.
             bluetoothAdapter.cancelDiscovery()
 
             mmSocket?.let { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
+                Log.d(TAG2, "Socket functional: $mmSocket")
                 try {
                     socket.connect()
                 } catch (e: Exception) {
