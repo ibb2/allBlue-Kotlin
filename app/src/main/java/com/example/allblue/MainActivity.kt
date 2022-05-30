@@ -1,6 +1,5 @@
-package com.example.allblue_kotlin
+package com.example.allblue
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,27 +8,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.net.MacAddress
 import android.os.Build
 import android.os.Bundle
-import android.os.ParcelUuid
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.allblue_kotlin.databinding.ActivityMainBinding
-import com.example.allblue_kotlin.databinding.BluetoothDeviceListBinding
-import org.json.JSONObject
-import java.io.File
-import java.io.IOException
+import com.example.allblue.databinding.ActivityMainBinding
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -102,9 +87,6 @@ class MainActivity : AppCompatActivity() {
         val TAG3 = "Recyclerview onClickListener"
         val devicePos = devices_list[position]
 
-        Log.d(TAG3, "On click is functional $position")
-        Log.d(TAG3, "${devicePos.name}, ${devicePos.address}")
-
         // Using preferences, to store key-value pairs
         val sharedPref = getSharedPreferences("Selected Bluetooth Device",Context.MODE_PRIVATE)
         val parcelUUID = devicePos.getUuids()
@@ -116,12 +98,9 @@ class MainActivity : AppCompatActivity() {
             apply()
         }
 
-        Log.d(TAG3, "UUID on click: ${asString}")
-
         binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
         binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
 
-        Log.d(TAG3, "${sharedPref.getInt("number", 0)}")
     }
 
     override fun onDestroy() {

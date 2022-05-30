@@ -1,4 +1,4 @@
-package com.example.allblue_kotlin
+package com.example.allblue
 
 import org.junit.Test
 

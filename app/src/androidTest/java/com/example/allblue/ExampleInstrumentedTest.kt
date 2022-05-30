@@ -1,4 +1,4 @@
-package com.example.allblue_kotlin
+package com.example.allblue
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,24 +1,13 @@
-package com.example.allblue_kotlin
+package com.example.allblue
 
-import android.Manifest
-import android.R
 import android.app.*
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import java.util.*
-import java.util.prefs.Preferences
 import kotlin.concurrent.thread
-import java.util.UUID
 
 
 class MediaPlayingService: Service() {
