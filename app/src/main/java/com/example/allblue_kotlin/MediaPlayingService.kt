@@ -40,9 +40,8 @@ class MediaPlayingService: Service() {
                 PendingIntent.FLAG_IMMUTABLE) }
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
-            .setContentTitle("allBlue")
-            .setContentText("View")
-            .setSmallIcon(R.drawable.arrow_down_float)
+            .setContentTitle("allBlue - status")
+            .setContentText("Running")
             .setContentIntent(pendingIntent)
             .setPriority(Notification.PRIORITY_DEFAULT)
             .setTicker("blank")
