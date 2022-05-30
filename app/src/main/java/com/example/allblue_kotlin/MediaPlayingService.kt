@@ -48,7 +48,6 @@ class MediaPlayingService: Service() {
             .build()
 
         thread(true) {
-            Log.i(TAG, "New Initialised thread")
 
             while (true) {
                 val AudioManager: AudioManager = getSystemService(AudioManager::class.java)
@@ -64,19 +63,14 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
-                    Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus}")
-                    Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive}")
                 }
 
-                Log.i(TAG, "Music is playing: {Status: $audioPlayingStatus}")
-                Log.i(TAG, "AudioManagerActive: {Status: $AudioManagerActive}")
                 Thread.sleep(5000)
             }
         }
 
         // Start Foreground Service
         startForeground(ONGOING_NOTIFICATION_ID, notification)
-        Log.d(TAG, "Foreground Service running")
 
         return START_REDELIVER_INTENT
     }

@@ -163,10 +163,6 @@ class MyBroadcastReceiver : BroadcastReceiver() {
         cThread.run()
         cThread.cancel()
 
-        // Logging information of intent and received extra data
-        Log.i(TAG2, "Intent received")
-        Log.i(TAG2, "$intent")
-        Log.i(TAG2, "$musicStatusBool")
     }
 
     @SuppressLint("MissingPermission")
@@ -180,7 +176,6 @@ class MyBroadcastReceiver : BroadcastReceiver() {
 
 
         private val mmSocket: BluetoothSocket? by lazy(LazyThreadSafetyMode.NONE) {
-            Log.d(TAG2, "UUID: $bluetoothDeviceUUID")
             device?.createRfcommSocketToServiceRecord(bluetoothDeviceUUID)
         }
 
@@ -191,13 +186,7 @@ class MyBroadcastReceiver : BroadcastReceiver() {
             mmSocket?.let { socket ->
                 // Connect to the remote device through the socket. This call blocks
                 // until it succeeds or throws an exception.
-                Log.d(TAG2, "Socket functional: $mmSocket")
-                try {
-                    socket.connect()
-                } catch (e: Exception) {
-                    Log.d(TAG2, "Not able to connect, $e")
-                }
-
+                socket.connect()
                 // The connection attempt succeeded. Perform work associated with
                 // the connection in a separate thread.
                 // manageMyConnectedSocket(socket)
@@ -206,11 +195,7 @@ class MyBroadcastReceiver : BroadcastReceiver() {
 
         // Closes the client socket and causes the thread to finish.
         fun cancel() {
-            try {
-                mmSocket?.close()
-            } catch (e: IOException) {
-                Log.e(TAG2, "Could not close the client socket", e)
-            }
+            mmSocket?.close()
         }
     }
 
