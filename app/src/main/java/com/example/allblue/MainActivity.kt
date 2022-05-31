@@ -62,8 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         // Display selected device to connect to
         val sharedPref = getPreferences(Context.MODE_PRIVATE) ?: return
-        binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
-        binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
+        binding.tvBluetoothName.text = sharedPref.getString("name", "")
+        binding.tvBluetoothAddress.text = sharedPref.getString("address", "")
 
         // Recyclerview
         binding.recyclerViewPairedDevices.layoutManager = LinearLayoutManager(this)
@@ -98,8 +98,8 @@ class MainActivity : AppCompatActivity() {
             apply()
         }
 
-        binding.textViewBluetoothDeviceName.text = sharedPref.getString("name", "")
-        binding.textViewBluetoothDeviceAddress.text = sharedPref.getString("address", "")
+        binding.tvBluetoothName.text = sharedPref.getString("name", "")
+        binding.tvBluetoothAddress.text = sharedPref.getString("address", "")
 
     }
 

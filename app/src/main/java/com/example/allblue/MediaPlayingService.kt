@@ -53,7 +53,6 @@ class MediaPlayingService: Service() {
                         sendBroadcast(intent)
                     }
                 }
-
                 Thread.sleep(5000)
             }
         }
