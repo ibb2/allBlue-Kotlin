@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">allBlue-Kotlin</string>
+    <string name="app_name">allBlue</string>
+    <string name="channel_name">Main Activity Notifications</string>
+    <string name="channel_description">Notifications related to Main Activity</string>
 </resources>
