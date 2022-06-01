@@ -11,11 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/mcvSecond"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="300dp"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints">
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="16dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -28,7 +27,11 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
-                android:layout_margin="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/selected_device"
                 android:textAllCaps="true"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -49,14 +52,15 @@
                     android:id="@+id/tvBluetoothName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/roboto"
                     android:textAllCaps="true" />
 
                 <TextView
                     android:id="@+id/tvBluetoothAddress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true" />
-
+                    android:layout_alignParentEnd="true"
+                    android:fontFamily="@font/roboto" />
             </RelativeLayout>
 
         </RelativeLayout>
@@ -65,17 +69,18 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/mcvSecond"
         android:layout_width="match_parent"
-        android:layout_height="356dp"
+        android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints">
+        app:layout_constraintTop_toBottomOf="@+id/mcvFirst"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="16dp">
 
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp">
+
 
             <TextView
                 android:id="@+id/tvBluetoothDeviceName"
@@ -87,6 +92,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
+                android:fontFamily="@font/roboto"
                 android:text="@string/paired_bluetooth_devices"
                 android:textAllCaps="true"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
@@ -94,51 +100,46 @@
 
             <TextView
                 android:id="@+id/tvBluetoothDeviceAddress"
-                android:layout_width="346dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_above="@+id/recyclerView_Paired_Devices"
                 android:layout_below="@+id/tvBluetoothDeviceName"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentBottom="true"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="266dp"
+
+                android:fontFamily="@font/roboto"
                 android:text="@string/select_device_that_you_want_to_connect_to"
-                android:textSize="20sp" />
+                android:textSize="20sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@id/recyclerView_Paired_Devices"
+                app:layout_constraintTop_toBottomOf="@id/tvBluetoothDeviceName" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView_Paired_Devices"
                 android:layout_width="match_parent"
-                android:layout_height="172dp"
+                android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="108dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="76dp"
-                tools:listitem="@layout/bluetooth_device_list" />
+                android:layout_margin="16dp"
+                app:layout_constraintTop_toBottomOf="@id/tvBluetoothDeviceAddress"
+                tools:listitem="@layout/bluetooth_device_list"/>
 
-        </RelativeLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/button_paired"
-        android:layout_width="196dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_margin="16dp"
+        android:fontFamily="@font/roboto"
         android:text="@string/start_allblue_service"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.948"
         tools:ignore="MissingConstraints" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
