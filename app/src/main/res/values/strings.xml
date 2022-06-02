@@ -8,4 +8,12 @@
     <string name="paired_bluetooth_devices">Paired Bluetooth Devices</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="bluetooth_mac_address">Bluetooth Mac Address</string>
+    <string name="page_title">allBlue</string>
+    <string name="content_description_search" />
+    <string name="edit" />
+    <string name="favorite" />
+    <string name="content_description_favorite" />
+    <string name="more" />
+    <string name="content_description_more" />
+    <string name="content_description_menu">3 Horizontal line icon, representing settings. Toggleable options related to application features</string>
 </resources>
