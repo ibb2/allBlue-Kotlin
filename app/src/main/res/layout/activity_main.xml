@@ -8,19 +8,18 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/ap1"
-        android:elevation="4dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:ignore="MissingConstraints">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
+            android:background="?colorPrimaryContainer"
             android:layout_width="match_parent"
-            android:background="@color/md_theme_light_primaryContainer"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/page_title"
-            app:titleCentered="true"
-            app:navigationIcon="@drawable/baseline_menu_24" />
+            app:menu="@menu/top_app_bar"
+            app:titleCentered="true"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -146,6 +145,8 @@
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/button_paired"
+        android:textColor="?android:attr/textColorPrimaryInverse"
+        android:backgroundTint="?colorPrimary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
