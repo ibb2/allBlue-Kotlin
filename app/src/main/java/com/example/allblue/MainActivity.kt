@@ -30,8 +30,8 @@ class MainActivity : AppCompatActivity() {
     private val TAG = "Main Activity"
     private lateinit var binding: ActivityMainBinding
 
-    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -50,8 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            @Suppress("DEPRECATION")
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+//            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
         // Nullable items returning list of Bluetooth Objects of connected devices
@@ -61,20 +60,49 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Display selected device to connect to
-        val sharedPref = getPreferences(Context.MODE_PRIVATE) ?: return
-        binding.tvBluetoothName.text = sharedPref.getString("name", "")
-        binding.tvBluetoothAddress.text = sharedPref.getString("address", "")
+        val sharedPrefBluetooth = getPreferences(Context.MODE_PRIVATE) ?: return
+        binding.tvBluetoothName.text = sharedPrefBluetooth.getString("name", "")
+        binding.tvBluetoothAddress.text = sharedPrefBluetooth.getString("address", "")
 
         // Recyclerview
         binding.recyclerViewPairedDevices.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewPairedDevices.adapter = MainAdapter(devices_list, {position -> onItemClick(position)})
 
-        binding.buttonPaired.setOnClickListener {
-            startService(Intent(this, MediaPlayingService::class.java))
-        }
-        startService(Intent(this, MediaPlayingService::class.java))
-
+        // Broadcast Receiver Val
         val br: BroadcastReceiver = MyBroadcastReceiver()
+
+        // Start Stop service button
+        val sharedPrefService = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
+        val serviceStatus = sharedPrefService.getBoolean("status", false)
+
+        if (serviceStatus) {
+            startService(Intent(this, MediaPlayingService::class.java))
+            binding.btnService.text = resources.getString(R.string.stopallblue_service)
+        } else {
+            binding.btnService.text = resources.getString(R.string.startallblue_service)
+        }
+
+        binding.btnService.setOnClickListener {
+
+            sharedPrefService.edit().clear().commit()
+            val sharedPrefServiceInButton = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
+            val serviceStatusInButton = sharedPrefServiceInButton.getBoolean("status", false)
+
+            Toast.makeText(this, "$serviceStatus", Toast.LENGTH_LONG).show()
+            val textOfBtn = binding.btnService.text
+            if (textOfBtn == "Stop Service") {
+                stopService(Intent(this, MediaPlayingService::class.java))
+                Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show();
+                binding.btnService.text = resources.getString(R.string.startallblue_service)
+            } else {
+                startService(Intent(this, MediaPlayingService::class.java))
+                binding.btnService.text = resources.getString(R.string.stopallblue_service)
+            }
+        }
+
+        // startService(Intent(this, MediaPlayingService::class.java))
+
+        // Register Broadcast Receiver
         val filter = IntentFilter("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED").apply {
             addAction("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED")
         }
