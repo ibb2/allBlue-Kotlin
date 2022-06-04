@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+//            @Suppress("DEPRECATION")
 //            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
         }
 
@@ -84,23 +85,16 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnService.setOnClickListener {
 
-            sharedPrefService.edit().clear().commit()
-            val sharedPrefServiceInButton = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
-            val serviceStatusInButton = sharedPrefServiceInButton.getBoolean("status", false)
-
-            Toast.makeText(this, "$serviceStatus", Toast.LENGTH_LONG).show()
             val textOfBtn = binding.btnService.text
+
             if (textOfBtn == "Stop Service") {
                 stopService(Intent(this, MediaPlayingService::class.java))
-                Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show();
                 binding.btnService.text = resources.getString(R.string.startallblue_service)
             } else {
                 startService(Intent(this, MediaPlayingService::class.java))
                 binding.btnService.text = resources.getString(R.string.stopallblue_service)
             }
         }
-
-        // startService(Intent(this, MediaPlayingService::class.java))
 
         // Register Broadcast Receiver
         val filter = IntentFilter("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED").apply {
