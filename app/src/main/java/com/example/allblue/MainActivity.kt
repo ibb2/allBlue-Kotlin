@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Display selected device to connect to
-        val sharedPrefBluetooth = getPreferences(Context.MODE_PRIVATE) ?: return
+        val sharedPrefBluetooth = getSharedPreferences("Selected Bluetooth Device",Context.MODE_PRIVATE) ?: return
         binding.tvBluetoothName.text = sharedPrefBluetooth.getString("name", "")
         binding.tvBluetoothAddress.text = sharedPrefBluetooth.getString("address", "")
 
