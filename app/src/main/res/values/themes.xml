@@ -1,7 +1,6 @@
 <!--suppress AndroidDomInspection -->
 <resources>
-
-    <style name="Theme.AllBlueKotlin" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.AllBlueKotlin" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
@@ -50,4 +49,5 @@
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Material3.MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Material3.LargeComponent</item>
     </style>
+
 </resources>
