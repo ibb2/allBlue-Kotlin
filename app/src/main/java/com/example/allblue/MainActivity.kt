@@ -1,23 +1,27 @@
 package com.example.allblue
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.allblue.databinding.ActivityMainBinding
-import com.google.android.material.color.DynamicColors
 import java.util.*
-import kotlin.collections.ArrayList
 
 private var musicStatusBool = false
 private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
@@ -39,13 +43,39 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
+        //check android12+
+        val requestMultiplePermissions =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                permissions.entries.forEach {
+                    Log.d("test006", "${it.key} = ${it.value}")
+                }
+            }
+
+        var requestBluetooth =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    //granted
+                } else {
+                    //deny
+                }
+            }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requestMultiplePermissions.launch(arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT))
+        } else {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            requestBluetooth.launch(enableBtIntent)
+        }
+
         // Create Notification channel, Immediate run needed, No perf impact
         createNotificationChannel()
 
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothAdapter = bluetoothManager.adapter
 
-        if (!bluetoothAdapter.isEnabled){
+        if (!bluetoothAdapter.isEnabled) {
             Toast.makeText(this, "Bluetooth not supported on device", Toast.LENGTH_LONG).show()
         }
 
