@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.allblue.databinding.ActivityMainBinding
+import com.google.android.material.color.DynamicColors
 import java.util.*
 import kotlin.collections.ArrayList
 

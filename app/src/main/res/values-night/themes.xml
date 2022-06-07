@@ -1,6 +1,6 @@
+<!--suppress AndroidDomInspection -->
 <resources>
-    <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="android:statusBarColor">@color/md_theme_dark_onPrimary</item>
+    <style name="Theme.AllBlueKotlin" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
@@ -29,7 +29,7 @@
 <!--        <item name="colorInversePrimary">@color/md_theme_dark_inversePrimary</item>-->
 <!--        <item name="colorShadow">@color/md_theme_dark_shadow</item>-->
         <item name="colorPrimaryInverse">@color/md_theme_dark_primaryInverse</item>
-        <!-- Material3 attributes (needed if parent="Theme.MaterialComponents"). -->
+
         <item name="textAppearanceDisplayLarge">@style/TextAppearance.Material3.DisplayLarge</item>
         <item name="textAppearanceDisplayMedium">@style/TextAppearance.Material3.DisplayMedium</item>
         <item name="textAppearanceDisplaySmall">@style/TextAppearance.Material3.DisplaySmall</item>
@@ -49,4 +49,5 @@
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Material3.MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Material3.LargeComponent</item>
     </style>
+
 </resources>
