@@ -5,16 +5,14 @@ package com.example.allblue
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.Material3AppTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.res.painterResource
 
 class MainActivity2 : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,10 +53,39 @@ fun Main(content: @Composable () -> Unit) {
                 }
 
                 ) {
-
+                Body()
             }
         }
     }
+}
+
+@Composable
+fun Body() {
+    Column {
+        section1()
+        section2()
+    }
+}
+
+@Composable
+fun section1() {
+    // Display the selected Bluetooth device by user
+
+    Text(text = "Selected Device")
+    Text(text = "Bluetooth device name: Mac Address")    
+}
+
+@Composable
+fun section2() {
+    // Lazy Column list of all paired bluetooth devices
+    Text(text = "Paired Devices")
+    Text(text = "Blah blah blahhhhh")
+    Text(text = "Bluetooth device name: Mac Address")
+    Text(text = "Bluetooth device name: Mac Address")
+    Text(text = "Bluetooth device name: Mac Address")
+    Text(text = "Bluetooth device name: Mac Address")
+    Text(text = "Bluetooth device name: Mac Address")
+    Text(text = "Bluetooth device name: Mac Address")
 }
 
 @Preview(showBackground = true)
