@@ -17,4 +17,5 @@
     <string name="more" />
     <string name="content_description_more" />
     <string name="content_description_menu">3 Horizontal line icon, representing settings. Toggleable options related to application features</string>
+    <string name="title_activity_main2">MainActivity2</string>
 </resources>
