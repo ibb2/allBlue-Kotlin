@@ -1,14 +1,16 @@
 package com.example.allblue
 
-import android.app.*
+import android.app.Notification
+import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
 import android.os.IBinder
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -70,6 +72,12 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
+
+                    val BluetoothObserver = Observer<Boolean> { data ->
+
+                    }
+
+
                 }
                 Thread.sleep(5000)
             }
