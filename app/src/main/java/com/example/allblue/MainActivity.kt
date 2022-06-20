@@ -3,7 +3,10 @@ package com.example.allblue
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,13 +18,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.allblue.databinding.ActivityMainBinding
-import com.google.android.material.color.DynamicColors
 import java.util.*
-import kotlin.collections.ArrayList
 
 private var musicStatusBool = false
 private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
-private lateinit var bluetoothAdapter: BluetoothAdapter
+lateinit var bluetoothAdapter: BluetoothAdapter
 
 class MainActivity : AppCompatActivity() {
 

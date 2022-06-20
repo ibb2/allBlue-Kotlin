@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -72,11 +71,6 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
-
-                    val BluetoothObserver = Observer<Boolean> { data ->
-
-                    }
-
 
                 }
                 Thread.sleep(5000)
