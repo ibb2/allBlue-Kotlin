@@ -2,11 +2,12 @@ package com.example.compose
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.Shapes
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import com.example.ui.theme.AppTypography
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val LightThemeColors = lightColorScheme(
 
@@ -86,16 +87,70 @@ private val DarkThemeColors = darkColorScheme(
 fun Material3AppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
 	val android12Higher = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-	val colors = when {
-		android12Higher && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-		android12Higher && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
-		darkTheme -> DarkThemeColors
-		else -> LightThemeColors
+	val colorScheme = when {
+		android12Higher && darkTheme -> {
+			dynamicDarkColorScheme(LocalContext.current)
+
+			// Update all of the system bar colors to be transparent, and use
+			// dark icons if we're in light theme
+//			systemUiController.setSystemBarsColor(
+//				color = Transparent,
+//				darkIcons = useDarkTheme
+//			)
+
+			// setStatusBarsColor() and setNavigationBarColor() also exist
+
+		}
+		android12Higher && !darkTheme -> {
+			dynamicLightColorScheme(LocalContext.current)
+
+			// Update all of the system bar colors to be transparent, and use
+//			// dark icons if we're in light theme
+//			systemUiController.setSystemBarsColor(
+//				color = Transparent,
+//			)
+		}
+		darkTheme -> {
+			DarkThemeColors
+
+//			systemUiController.setSystemBarsColor(
+//				color = Transparent,
+//				darkIcons = useDarkTheme
+//			)
+		}
+		else -> {
+			LightThemeColors
+//			systemUiController.setSystemBarsColor(
+//				color = Transparent,
+//			)
+		}
 	}
 
+	val systemUiController = rememberSystemUiController()
+	val useDarkTheme: Boolean = isSystemInDarkTheme()
+
+	SideEffect {
+		// Update all of the system bar colors to be transparent, and use
+		// dark icons if we're in light theme
+		if (!useDarkTheme) {
+			systemUiController.setSystemBarsColor(
+				color = md_theme_light_surface,
+				darkIcons = !useDarkTheme
+			)
+		} else {
+			systemUiController.setSystemBarsColor(
+				color = md_theme_dark_surface,
+			)
+		}
+
+		// setStatusBarsColor() and setNavigationBarColor() also exist
+	}
+
+
 	MaterialTheme(
-	  colorScheme = colors,
-	  typography = AppTypography,
-	  content = content
+		colorScheme = colorScheme,
+		typography = AppTypography,
+		content = content,
 	)
+
 }

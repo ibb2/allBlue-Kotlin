@@ -30,9 +30,9 @@ class BluetoothRepository @Inject constructor(private val dataStore: DataStore<P
 
     val selectedDevice = dataStore.data.map { device ->
         UserDevice(
-        device[BLUETOOTH_UUID] ?: "n/a",
-        device[BLUETOOTH_NAME] ?: "n/a",
-        device[BLUETOOTH_ADDRESS] ?: "n/a")
+            device[BLUETOOTH_UUID] ?: "",
+            device[BLUETOOTH_NAME] ?: "",
+            device[BLUETOOTH_ADDRESS] ?: "")
     }
 
 

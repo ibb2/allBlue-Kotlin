@@ -1,5 +1,6 @@
 package com.example.allblue
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -18,8 +19,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class BluetoothState(
-    val selectedDevice: UserDevice? = null,
-    val pairedDevices: ArrayList<BluetoothDevice> = ArrayList()
+    val selectedDevice: UserDevice = UserDevice(),
+    val pairedDevices: ArrayList<BluetoothDevice> = ArrayList(),
 )
 
 @HiltViewModel
@@ -46,6 +47,7 @@ class BluetoothViewModel @Inject constructor(@ApplicationContext context: Contex
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun getPairedDevices(@ApplicationContext context: Context) {
         viewModelScope.launch {
 
@@ -76,9 +78,17 @@ class BluetoothViewModel @Inject constructor(@ApplicationContext context: Contex
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun saveSelectedDevice(bluetoothDevice: BluetoothDevice, ) {
         viewModelScope.launch {
             bluetoothRepository.saveDevice(bluetoothDevice)
+            _viewState.value = _viewState.value.copy(
+                selectedDevice = UserDevice(
+                    bluetoothDevice.uuids.toString(),
+                    bluetoothDevice.name,
+                    bluetoothDevice.address
+                )
+            )
         }
     }
 }

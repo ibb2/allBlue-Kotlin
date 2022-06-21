@@ -91,7 +91,10 @@ dependencies {
     // optional - RxJava2 support
     implementation "androidx.datastore:datastore-preferences-rxjava2:1.0.0"
 
-
     implementation "com.google.dagger:hilt-android:2.38.1"
     kapt "com.google.dagger:hilt-compiler:2.38.1"
+
+    // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+
 }

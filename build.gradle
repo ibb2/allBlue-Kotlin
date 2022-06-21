@@ -5,11 +5,17 @@ buildscript {
         material_version = "1.7.0-alpha02"
         lifecycle_version = "2.2.0"
         view_model = "2.4.1"
+        accompanist_version = "0.24.11-rc"
     }
     dependencies {
         classpath 'com.google.dagger:hilt-android-gradle-plugin:2.38.1'
     }
+
+    repositories {
+        mavenCentral()
+    }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 plugins {
     id 'com.android.application' version '7.2.1' apply false
     id 'com.android.library' version '7.2.1' apply false

@@ -5,8 +5,10 @@ package com.example.allblue
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -122,12 +124,23 @@ fun Section1(bluetoothViewModel: BluetoothViewModel = viewModel()) {
 fun Section2(context: Context, viewModel: BluetoothViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     // Lazy Column list of all paired bluetooth devices
 
-    val bluetooth = viewModel.viewState.collectAsState(initial = BluetoothState())
-    val pairedDevices: ArrayList<BluetoothDevice> = bluetooth.value.pairedDevices
+    val bluetoothState = viewModel.viewState.collectAsState(initial = BluetoothState())
+    val pairedDevices: ArrayList<BluetoothDevice> = bluetoothState.value.pairedDevices
 
-    LazyColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
+    LazyColumn(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)) {
         items(pairedDevices) { pairedDevice ->
-            Row(modifier = Modifier.padding(vertical = 16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+                    .clickable {
+                        viewModel.saveSelectedDevice(pairedDevice)
+                        Log.d("Row1", "Clicked $pairedDevice")
+                    },
+                horizontalArrangement = Arrangement.Center,
+            ) {
                 Text(text = pairedDevice.name)
                 Text(text = pairedDevice.address)
             }
@@ -166,7 +179,6 @@ fun FAB() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    val context = LocalContext.current
     Main() {
         val context = LocalContext.current
         Body(context)
