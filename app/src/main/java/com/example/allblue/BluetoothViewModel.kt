@@ -24,7 +24,7 @@ data class BluetoothState(
 )
 
 @HiltViewModel
-class BluetoothViewModel @Inject constructor(@ApplicationContext context: Context, private val bluetoothRepository: BluetoothRepository) : ViewModel() {
+class BluetoothViewModel @Inject constructor(private val bluetoothRepository: BluetoothRepository) : ViewModel() {
 
     private val _viewState = MutableStateFlow(BluetoothState())
     val viewState: StateFlow<BluetoothState> = _viewState
@@ -79,7 +79,7 @@ class BluetoothViewModel @Inject constructor(@ApplicationContext context: Contex
     }
 
     @SuppressLint("MissingPermission")
-    fun saveSelectedDevice(bluetoothDevice: BluetoothDevice, ) {
+    fun saveSelectedDevice(bluetoothDevice: BluetoothDevice) {
         viewModelScope.launch {
             bluetoothRepository.saveDevice(bluetoothDevice)
             _viewState.value = _viewState.value.copy(

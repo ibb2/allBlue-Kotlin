@@ -38,8 +38,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+        freeCompilerArgs += "-opt-in=org.mylibrary.OptInAnnotation"
+
     }
     namespace 'com.example.allblue'
+
     composeOptions {
         kotlinCompilerExtensionVersion compose_version
     }
@@ -48,15 +51,17 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+
 }
 
 dependencies {
     implementation "androidx.compose.ui:ui:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.0.0-alpha01'
+    implementation 'androidx.compose.material3:material3:1.0.0-alpha13'
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.3.1'
-    implementation 'androidx.compose.material:material:1.0.0-rc01'
+    implementation 'androidx.activity:activity-compose:1.4.0'
+    implementation 'androidx.compose.material:material:1.2.0-rc01'
+    implementation 'androidx.compose.animation:animation:1.1.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
@@ -96,5 +101,10 @@ dependencies {
 
     // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+}
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        freeCompilerArgs += "-opt-in=org.mylibrary.OptInAnnotation"
+    }
 }
