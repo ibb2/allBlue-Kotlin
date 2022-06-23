@@ -143,7 +143,7 @@ fun Section1(
             Column(modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()) {
-                Text(text = stringResource(id = R.string.selected_device), fontSize = 30.sp,
+                Text(text = stringResource(id = R.string.selected_device), fontSize = 24.sp,
                     color = MaterialTheme.colorScheme.primary)
                 Row(modifier = Modifier
                     .padding(vertical = 32.dp)
@@ -176,7 +176,7 @@ fun Section2(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(text = stringResource(id = R.string.paired_bluetooth_devices),
-                    fontSize = 30.sp)
+                    fontSize = 24.sp)
                 Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
                     color = MaterialTheme.colorScheme.secondary)
 
@@ -238,6 +238,7 @@ fun FAB(contentPadding: PaddingValues) {
         verticalAlignment = Alignment.Bottom
     ) {
         ExtendedFloatingActionButton(
+            containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
                 btnText = if (btnText == initText) {
                     elseText
@@ -245,7 +246,7 @@ fun FAB(contentPadding: PaddingValues) {
                     initText
                 }
             }) {
-            Text(text = stringResource(id = btnText))
+            Text(text = stringResource(id = btnText), color = MaterialTheme.colorScheme.onTertiary)
         }
     }
 }
