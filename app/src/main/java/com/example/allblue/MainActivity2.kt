@@ -233,8 +233,7 @@ fun FAB(contentPadding: PaddingValues) {
     Row(
         modifier = Modifier
             .fillMaxHeight()
-            .fillMaxWidth()
-            .padding(contentPadding),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.Bottom
     ) {
