@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.allblue
 
 import android.Manifest
@@ -13,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.Material3AppTheme
@@ -78,12 +81,14 @@ fun Main(
     Material3AppTheme() {
 
         // A surface container using the 'background' color from the theme
-        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxWidth()) {
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth())
+        {
             Content()
             Scaffold(Modifier
-                .fillMaxHeight(1f)
-                .fillMaxWidth(1f)
-                .padding(16.dp),
+                .fillMaxHeight()
+                .fillMaxWidth(),
                 topBar = {
                     CenterAlignedTopAppBar(
                         title = { Text(text = "allBlue") },
@@ -105,8 +110,13 @@ fun Main(
                     )
                 },
                 content = { contentPadding ->
-                    Column() {
+                    Column(modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                    ) {
                         Section1(name, address, contentPadding)
+                        Spacer(modifier = Modifier.padding(20.dp))
                         Section2(getPairedDevices,
                             PairedDevices,
                             saveSelectedDevice,
@@ -119,28 +129,33 @@ fun Main(
     }
 }
 
-
-
 @Composable
 fun Section1(
     bluetoothName: String,
     bluetoothAddress: String,
     contentPadding: PaddingValues,
 ) {
-
-    Card(
-        modifier = Modifier.size(height = 300.dp, width = 250.dp)
-    ) {
-        Text(text = stringResource(id = R.string.selected_device))
-        Row(modifier = Modifier
-            .size(width = 250.dp, height = 300.dp)
-            .fillMaxWidth()
-            .padding(contentPadding),
-            horizontalArrangement = Arrangement.Start) {
-            Text(text = bluetoothName)
-            Text(text = bluetoothAddress)
+    Spacer(modifier = Modifier.padding(contentPadding))
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth(),
+        content = {
+            Column(modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()) {
+                Text(text = stringResource(id = R.string.selected_device), fontSize = 30.sp,
+                    color = MaterialTheme.colorScheme.primary)
+                Row(modifier = Modifier
+                    .padding(vertical = 32.dp)
+                    .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = bluetoothName, textAlign = TextAlign.Start)
+                    Text(text = bluetoothAddress, textAlign = TextAlign.End)
+                }
+            }
         }
-    }
+    )
 }
 
 @Composable
@@ -155,39 +170,54 @@ fun Section2(
 
     // Lazy Column list of all paired bluetooth devices
     val pairedDevices: ArrayList<BluetoothDevice> = PairedDevices
-
-    LazyColumn(modifier = Modifier
-        .size(300.dp)
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        items(pairedDevices) { pairedDevice ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-                    .clickable {
-                        saveSelectedDevice(pairedDevice)
-                        Log.d("Row1", "Clicked $pairedDevice")
-                    },
-                horizontalArrangement = Arrangement.Center,
+    androidx.compose.material3.Card(
+        content = {
+            Column(
+                modifier = Modifier.padding(16.dp)
             ) {
-                if (ActivityCompat.checkSelfPermission(context,
-                        Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+                Text(text = stringResource(id = R.string.paired_bluetooth_devices),
+                    fontSize = 30.sp)
+                Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
+                    color = MaterialTheme.colorScheme.secondary)
+
+                LazyColumn(modifier = Modifier
+                    .height(300.dp)
+                    .padding(vertical = 16.dp)
+                    .fillMaxWidth()
                 ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    Toast.makeText(context, "Enable connect permission", Toast.LENGTH_SHORT).show()
+                    items(pairedDevices) { pairedDevice ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    saveSelectedDevice(pairedDevice)
+                                    Log.d("Row1", "Clicked $pairedDevice")
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            if (ActivityCompat.checkSelfPermission(context,
+                                    Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                                Toast.makeText(context,
+                                    "Enable connect permission",
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            Text(text = pairedDevice.name.toString(), textAlign = TextAlign.Start, modifier = Modifier.padding(vertical=16.dp))
+                            Text(text = pairedDevice.address, textAlign = TextAlign.End, modifier = Modifier.padding(vertical=16.dp))
+                        }
+                    }
                 }
-                Text(text = pairedDevice.name.toString())
-                Text(text = pairedDevice.address)
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -202,21 +232,22 @@ fun FAB(contentPadding: PaddingValues) {
 
     Row(
         modifier = Modifier
-            .fillMaxHeight(1f)
+            .fillMaxHeight()
             .fillMaxWidth()
             .padding(contentPadding),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.Bottom
     ) {
-        androidx.compose.material.ExtendedFloatingActionButton(text = {
-        Text(text = stringResource(id = btnText))
-        }, onClick = {
-            btnText = if (btnText == initText) {
-                elseText
-            } else {
-                initText
-            }
-        })
+        ExtendedFloatingActionButton(
+            onClick = {
+                btnText = if (btnText == initText) {
+                    elseText
+                } else {
+                    initText
+                }
+            }) {
+            Text(text = stringResource(id = btnText))
+        }
     }
 }
 
