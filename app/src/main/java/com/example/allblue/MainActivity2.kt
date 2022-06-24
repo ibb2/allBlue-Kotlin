@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -176,7 +177,13 @@ fun Section1(
                     .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = bluetoothName, textAlign = TextAlign.Start)
+                    Text(text = bluetoothName,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier
+                            .width(170.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     Text(text = bluetoothAddress, textAlign = TextAlign.End)
                 }
             }
@@ -254,7 +261,11 @@ fun Section2(
                             }
                             Text(text = pairedDevice.name,
                                 textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(vertical = 16.dp))
+                                modifier = Modifier
+                                    .padding(vertical = 16.dp)
+                                    .width(170.dp),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis)
                             Text(text = pairedDevice.address,
                                 textAlign = TextAlign.End,
                                 modifier = Modifier.padding(vertical = 16.dp))
@@ -262,10 +273,11 @@ fun Section2(
                     }
                 }
             } else {
-                Column(modifier = Modifier
-                    .height(300.dp)
-                    .padding(vertical = 16.dp)
-                    .fillMaxWidth(),
+                Column(
+                    modifier = Modifier
+                        .height(300.dp)
+                        .padding(vertical = 16.dp)
+                        .fillMaxWidth(),
                 ) {
                     Text(text = stringResource(id = R.string.enable_nearby_scanning_permission))
                 }
