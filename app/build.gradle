@@ -38,8 +38,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
-        freeCompilerArgs += "-opt-in=org.mylibrary.OptInAnnotation"
-
     }
     namespace 'com.example.allblue'
 
@@ -101,10 +99,5 @@ dependencies {
 
     // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        freeCompilerArgs += "-opt-in=org.mylibrary.OptInAnnotation"
-    }
+    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
 }

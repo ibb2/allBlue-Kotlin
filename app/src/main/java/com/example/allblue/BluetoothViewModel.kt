@@ -31,13 +31,13 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
     private val _viewState = MutableStateFlow(BluetoothState())
     val viewState: StateFlow<BluetoothState> = _viewState
 
-    fun checkBluetoothStatus(@ApplicationContext context: Context) {
-        if (!bluetoothAdapter.isEnabled){
-            _viewState.value = _viewState.value.copy(
-                bluetoothEnabled = true
-            )
-        }
-    }
+//    fun checkBluetoothStatus(@ApplicationContext context: Context) {
+//        if (!bluetoothAdapter.isEnabled){
+//            _viewState.value = _viewState.value.copy(
+//                bluetoothEnabled = true
+//            )
+//        }
+//    }
 
     fun getSelectedDevice() {
         viewModelScope.launch {
@@ -104,7 +104,7 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 
     fun startMediaPlayingService(@ApplicationContext context: Context) {
         val bluetoothManager: BluetoothManager = context.getSystemService(BluetoothManager::class.java)
-        bluetoothAdapter = bluetoothManager.adapter
+        val bluetoothAdapter = bluetoothManager.adapter
 
         if (!bluetoothAdapter.isEnabled){
             Toast.makeText(context, "Bluetooth not supported on device", Toast.LENGTH_SHORT).show()
@@ -121,7 +121,7 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 
     fun stopMediaPlayingService(@ApplicationContext context: Context) {
         val bluetoothManager: BluetoothManager = context.getSystemService(BluetoothManager::class.java)
-        bluetoothAdapter = bluetoothManager.adapter
+        val bluetoothAdapter = bluetoothManager.adapter
 
         if (!bluetoothAdapter.isEnabled){
             Toast.makeText(context, "Bluetooth not supported on device", Toast.LENGTH_SHORT).show()

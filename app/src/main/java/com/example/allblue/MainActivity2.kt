@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
 package com.example.allblue
 
@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.Material3AppTheme
+import com.google.accompanist.permissions.*
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -55,11 +56,17 @@ class MainActivity2 : ComponentActivity() {
             val name = bluetoothState.selectedDevice.name
             val address = bluetoothState.selectedDevice.address
 
-            // Runtime functions ?
-            bluetoothViewModel.checkBluetoothStatus(context)
+            // Runtime
+
+            val multipleBluetoothPermission = rememberMultiplePermissionsState(permissions = listOf(
+                android.Manifest.permission_group.NEARBY_DEVICES,
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+            ))
+
 
             Main(
                 context,
+                multipleBluetoothPermission,
                 name,
                 address,
                 bluetoothViewModel::getPairedDevices,
@@ -77,6 +84,7 @@ class MainActivity2 : ComponentActivity() {
 @Composable
 fun Main(
     context: Context,
+    multiplePermissionsState: MultiplePermissionsState,
     name: String,
     address: String,
     getPairedDevices: (context: Context) -> Unit,
@@ -87,53 +95,61 @@ fun Main(
     serviceState: Boolean,
     Content: @Composable () -> Unit,
 ) {
-    Material3AppTheme() {
+    Material3AppTheme {
 
-        // A surface container using the 'background' color from the theme
-        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth())
-        {
-            Content()
-            Scaffold(Modifier
+        val allRevoked = multiplePermissionsState.permissions.size == multiplePermissionsState.revokedPermissions.size
+
+        if (allRevoked){
+            SideEffect {
+                multiplePermissionsState.launchMultiplePermissionRequest()
+            }
+        } else {
+            // A surface container using the 'background' color from the theme
+            Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(),
-                topBar = {
-                    CenterAlignedTopAppBar(
-                        title = { Text(text = "allBlue") },
-                        navigationIcon = {
-                            var menuStatus by remember {
-                                mutableStateOf(false)
-                            }
+                .fillMaxWidth())
+            {
+                Content()
+                Scaffold(Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
+                    topBar = {
+                        CenterAlignedTopAppBar(
+                            title = { Text(text = "allBlue") },
+                            navigationIcon = {
+                                var menuStatus by remember {
+                                    mutableStateOf(false)
+                                }
 
-                            IconButton(onClick = { menuStatus = !menuStatus }) {
-                                if (menuStatus) {
-                                    Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
-                                        contentDescription = "General settings opened")
-                                } else {
-                                    Icon(painter = painterResource(id = R.drawable.round_menu_24),
-                                        contentDescription = "General settings")
+                                IconButton(onClick = { menuStatus = !menuStatus }) {
+                                    if (menuStatus) {
+                                        Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
+                                            contentDescription = "General settings opened")
+                                    } else {
+                                        Icon(painter = painterResource(id = R.drawable.round_menu_24),
+                                            contentDescription = "General settings")
+                                    }
                                 }
                             }
+                        )
+                    },
+                    content = { contentPadding ->
+                        Column(modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                        ) {
+                            Section1(name, address, contentPadding)
+                            Spacer(modifier = Modifier.padding(20.dp))
+                            Section2(getPairedDevices,
+                                PairedDevices,
+                                saveSelectedDevice,
+                                context)
+                            FAB(startService, stopService, serviceState, context, contentPadding)
                         }
-                    )
-                },
-                content = { contentPadding ->
-                    Column(modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                    ) {
-                        Section1(name, address, contentPadding)
-                        Spacer(modifier = Modifier.padding(20.dp))
-                        Section2(getPairedDevices,
-                            PairedDevices,
-                            saveSelectedDevice,
-                            context)
-                        FAB(startService, stopService, serviceState, context, contentPadding)
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
@@ -177,14 +193,13 @@ fun Section2(
 
     getPairedDevices(context)
 
-    val locationPermissionsState = rememberMultiplePermissionsState(
-        listOf(
-            android.Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-        )
+    val bluetoothPermissionState = rememberPermissionState(
+        android.Manifest.permission.BLUETOOTH_CONNECT
     )
+
     // Lazy Column list of all paired bluetooth devices
     val pairedDevices: ArrayList<BluetoothDevice> = PairedDevices
+
     androidx.compose.material3.Card(
         content = {
             Column(
@@ -205,9 +220,17 @@ fun Section2(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    saveSelectedDevice(pairedDevice)
-                                    Log.d("Row1", "Clicked $pairedDevice")
-                                },
+                                    if (bluetoothPermissionState.status == PermissionStatus.Granted) {
+                                        saveSelectedDevice(pairedDevice)
+                                        Log.d("Row1", "Clicked $pairedDevice")
+                                    } else {
+                                        Toast
+                                            .makeText(context,
+                                                "Please enable Bluetooth Connect Permission",
+                                                Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                } ,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             if (ActivityCompat.checkSelfPermission(context,
@@ -220,12 +243,8 @@ fun Section2(
                                 //                                          int[] grantResults)
                                 // to handle the case where the user grants the permission. See the documentation
                                 // for ActivityCompat#requestPermissions for more details.
-                                Toast.makeText(context,
-                                    "Enable connect permission",
-                                    Toast.LENGTH_SHORT)
-                                    .show()
                             }
-                            Text(text = pairedDevice.name.toString(),
+                            Text(text = pairedDevice.name,
                                 textAlign = TextAlign.Start,
                                 modifier = Modifier.padding(vertical = 16.dp))
                             Text(text = pairedDevice.address,
@@ -286,6 +305,10 @@ fun DefaultPreview() {
 
     Main(
         context,
+        multiplePermissionsState = rememberMultiplePermissionsState(listOf(
+            android.Manifest.permission_group.NEARBY_DEVICES,
+            android.Manifest.permission.BLUETOOTH_CONNECT
+        )),
         name = UserDevice().name,
         address = UserDevice().address,
         getPairedDevices = {},
