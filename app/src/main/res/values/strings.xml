@@ -18,4 +18,6 @@
     <string name="content_description_more" />
     <string name="content_description_menu">3 Horizontal line icon, representing settings. Toggleable options related to application features</string>
     <string name="title_activity_main2">MainActivity2</string>
+    <string name="enable_nearby_scanning_permission">Please enable Nearby Scanning permissions for this app to display and connect to paired bluetooth devices.</string>
+    <string name="launch_nearby_scanning_request">Launch request</string>
 </resources>

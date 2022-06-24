@@ -6,11 +6,12 @@ import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,11 +36,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity2 : ComponentActivity() {
 
-//    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
+    //    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
 //    val devices_list : ArrayList<BluetoothDevice> = ArrayList()
 //    val REQUEST_ENABLE_BT = 1
 //    val TAG = "Main Activity"
 //    lateinit var binding: ActivityMainBinding
+    lateinit var multipleBluetoothPermission: MultiplePermissionsState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,9 +60,10 @@ class MainActivity2 : ComponentActivity() {
 
             // Runtime
 
-            val multipleBluetoothPermission = rememberMultiplePermissionsState(permissions = listOf(
-                android.Manifest.permission_group.NEARBY_DEVICES,
-                android.Manifest.permission.BLUETOOTH_CONNECT,
+
+            multipleBluetoothPermission = rememberMultiplePermissionsState(permissions = listOf(
+                Manifest.permission_group.NEARBY_DEVICES,
+                Manifest.permission.BLUETOOTH_CONNECT,
             ))
 
 
@@ -97,59 +100,57 @@ fun Main(
 ) {
     Material3AppTheme {
 
-        val allRevoked = multiplePermissionsState.permissions.size == multiplePermissionsState.revokedPermissions.size
-
-        if (allRevoked){
-            SideEffect {
-                multiplePermissionsState.launchMultiplePermissionRequest()
-            }
-        } else {
-            // A surface container using the 'background' color from the theme
-            Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
+        // A surface container using the 'background' color from the theme
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
+            .fillMaxHeight()
+            .fillMaxWidth())
+        {
+            Content()
+            Scaffold(Modifier
                 .fillMaxHeight()
-                .fillMaxWidth())
-            {
-                Content()
-                Scaffold(Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = { Text(text = "allBlue") },
-                            navigationIcon = {
-                                var menuStatus by remember {
-                                    mutableStateOf(false)
-                                }
+                .fillMaxWidth(),
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = { Text(text = "allBlue") },
+                        navigationIcon = {
+                            var menuStatus by remember {
+                                mutableStateOf(false)
+                            }
 
-                                IconButton(onClick = { menuStatus = !menuStatus }) {
-                                    if (menuStatus) {
-                                        Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
-                                            contentDescription = "General settings opened")
-                                    } else {
-                                        Icon(painter = painterResource(id = R.drawable.round_menu_24),
-                                            contentDescription = "General settings")
-                                    }
+                            IconButton(onClick = { menuStatus = !menuStatus }) {
+                                if (menuStatus) {
+                                    Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
+                                        contentDescription = "General settings opened")
+                                } else {
+                                    Icon(painter = painterResource(id = R.drawable.round_menu_24),
+                                        contentDescription = "General settings")
                                 }
                             }
-                        )
-                    },
-                    content = { contentPadding ->
-                        Column(modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                        ) {
-                            Section1(name, address, contentPadding)
-                            Spacer(modifier = Modifier.padding(20.dp))
-                            Section2(getPairedDevices,
-                                PairedDevices,
-                                saveSelectedDevice,
-                                context)
-                            FAB(startService, stopService, serviceState, context, contentPadding)
                         }
+                    )
+                },
+                content = { contentPadding ->
+                    Column(modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                    ) {
+                        Section1(name, address, contentPadding)
+                        Spacer(modifier = Modifier.padding(20.dp))
+                        Section2(
+                            multiplePermissionsState,
+                            getPairedDevices,
+                            PairedDevices,
+                            saveSelectedDevice,
+                            context)
+                        FAB(startService,
+                            stopService,
+                            serviceState,
+                            context,
+                            contentPadding)
                     }
-                )
-            }
+                }
+            )
         }
     }
 }
@@ -185,31 +186,43 @@ fun Section1(
 
 @Composable
 fun Section2(
+    multiplePermissionsState: MultiplePermissionsState,
     getPairedDevices: (context: Context) -> Unit,
     PairedDevices: ArrayList<BluetoothDevice>,
     saveSelectedDevice: (device: BluetoothDevice) -> Unit,
     context: Context,
 ) {
 
-    getPairedDevices(context)
+    val allRevoked =
+        multiplePermissionsState.permissions.size == multiplePermissionsState.revokedPermissions.size
 
-    val bluetoothPermissionState = rememberPermissionState(
-        android.Manifest.permission.BLUETOOTH_CONNECT
+    if (allRevoked) {
+        SideEffect {
+            multiplePermissionsState.launchMultiplePermissionRequest()
+        }
+    } else {
+        getPairedDevices(context)
+    }
+
+    lateinit var bluetoothPermissionState: PermissionState
+
+    bluetoothPermissionState = rememberPermissionState(
+        Manifest.permission.BLUETOOTH_CONNECT
     )
 
     // Lazy Column list of all paired bluetooth devices
     val pairedDevices: ArrayList<BluetoothDevice> = PairedDevices
 
-    androidx.compose.material3.Card(
-        content = {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(text = stringResource(id = R.string.paired_bluetooth_devices),
-                    fontSize = 24.sp)
-                Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
-                    color = MaterialTheme.colorScheme.secondary)
+    androidx.compose.material3.Card {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(text = stringResource(id = R.string.paired_bluetooth_devices),
+                fontSize = 24.sp)
+            Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
+                color = MaterialTheme.colorScheme.secondary)
 
+            if (!allRevoked) {
                 LazyColumn(modifier = Modifier
                     .height(300.dp)
                     .padding(vertical = 16.dp)
@@ -220,17 +233,9 @@ fun Section2(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    if (bluetoothPermissionState.status == PermissionStatus.Granted) {
-                                        saveSelectedDevice(pairedDevice)
-                                        Log.d("Row1", "Clicked $pairedDevice")
-                                    } else {
-                                        Toast
-                                            .makeText(context,
-                                                "Please enable Bluetooth Connect Permission",
-                                                Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-                                } ,
+                                    saveSelectedDevice(pairedDevice)
+                                    Log.d("Row1", "Clicked $pairedDevice")
+                                },
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             if (ActivityCompat.checkSelfPermission(context,
@@ -243,6 +248,9 @@ fun Section2(
                                 //                                          int[] grantResults)
                                 // to handle the case where the user grants the permission. See the documentation
                                 // for ActivityCompat#requestPermissions for more details.
+                                SideEffect {
+                                    bluetoothPermissionState.launchPermissionRequest()
+                                }
                             }
                             Text(text = pairedDevice.name,
                                 textAlign = TextAlign.Start,
@@ -253,9 +261,17 @@ fun Section2(
                         }
                     }
                 }
+            } else {
+                Column(modifier = Modifier
+                    .height(300.dp)
+                    .padding(vertical = 16.dp)
+                    .fillMaxWidth(),
+                ) {
+                    Text(text = stringResource(id = R.string.enable_nearby_scanning_permission))
+                }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -297,6 +313,7 @@ fun FAB(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
@@ -306,8 +323,8 @@ fun DefaultPreview() {
     Main(
         context,
         multiplePermissionsState = rememberMultiplePermissionsState(listOf(
-            android.Manifest.permission_group.NEARBY_DEVICES,
-            android.Manifest.permission.BLUETOOTH_CONNECT
+            Manifest.permission_group.NEARBY_DEVICES,
+            Manifest.permission.BLUETOOTH_CONNECT
         )),
         name = UserDevice().name,
         address = UserDevice().address,
