@@ -55,6 +55,9 @@ class MainActivity2 : ComponentActivity() {
             val name = bluetoothState.selectedDevice.name
             val address = bluetoothState.selectedDevice.address
 
+            // Runtime functions ?
+            bluetoothViewModel.checkBluetoothStatus(context)
+
             Main(
                 context,
                 name,
@@ -62,6 +65,9 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel::getPairedDevices,
                 bluetoothState.pairedDevices,
                 bluetoothViewModel::saveSelectedDevice,
+                bluetoothViewModel::startMediaPlayingService,
+                bluetoothViewModel::stopMediaPlayingService,
+                bluetoothState.serviceActive,
             ) {}
         }
     }
@@ -76,6 +82,9 @@ fun Main(
     getPairedDevices: (context: Context) -> Unit,
     PairedDevices: ArrayList<BluetoothDevice>,
     saveSelectedDevice: (device: BluetoothDevice) -> Unit,
+    startService: (context: Context) -> Unit,
+    stopService: (context: Context) -> Unit,
+    serviceState: Boolean,
     Content: @Composable () -> Unit,
 ) {
     Material3AppTheme() {
@@ -121,7 +130,7 @@ fun Main(
                             PairedDevices,
                             saveSelectedDevice,
                             context)
-                        FAB(contentPadding)
+                        FAB(startService, stopService, serviceState, context, contentPadding)
                     }
                 }
             )
@@ -168,6 +177,12 @@ fun Section2(
 
     getPairedDevices(context)
 
+    val locationPermissionsState = rememberMultiplePermissionsState(
+        listOf(
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+        )
+    )
     // Lazy Column list of all paired bluetooth devices
     val pairedDevices: ArrayList<BluetoothDevice> = PairedDevices
     androidx.compose.material3.Card(
@@ -210,8 +225,12 @@ fun Section2(
                                     Toast.LENGTH_SHORT)
                                     .show()
                             }
-                            Text(text = pairedDevice.name.toString(), textAlign = TextAlign.Start, modifier = Modifier.padding(vertical=16.dp))
-                            Text(text = pairedDevice.address, textAlign = TextAlign.End, modifier = Modifier.padding(vertical=16.dp))
+                            Text(text = pairedDevice.name.toString(),
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier.padding(vertical = 16.dp))
+                            Text(text = pairedDevice.address,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.padding(vertical = 16.dp))
                         }
                     }
                 }
@@ -221,7 +240,13 @@ fun Section2(
 }
 
 @Composable
-fun FAB(contentPadding: PaddingValues) {
+fun FAB(
+    startService: (context: Context) -> Unit,
+    stopService: (context: Context) -> Unit,
+    serviceState: Boolean,
+    context: Context,
+    contentPadding: PaddingValues,
+) {
 
     val initText = R.string.startallblue_service
     val elseText = R.string.stopallblue_service
@@ -240,10 +265,12 @@ fun FAB(contentPadding: PaddingValues) {
         ExtendedFloatingActionButton(
             containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
-                btnText = if (btnText == initText) {
-                    elseText
+                if (btnText == initText && serviceState) {
+                    btnText = elseText
+                    startService(context)
                 } else {
-                    initText
+                    btnText = initText
+                    stopService(context)
                 }
             }) {
             Text(text = stringResource(id = btnText), color = MaterialTheme.colorScheme.onTertiary)
@@ -264,5 +291,8 @@ fun DefaultPreview() {
         getPairedDevices = {},
         PairedDevices = BluetoothState().pairedDevices,
         saveSelectedDevice = {},
+        startService = {},
+        stopService = {},
+        serviceState = BluetoothState().serviceActive,
     ) {}
 }

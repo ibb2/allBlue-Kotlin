@@ -21,6 +21,8 @@ import javax.inject.Inject
 data class BluetoothState(
     val selectedDevice: UserDevice = UserDevice(),
     val pairedDevices: ArrayList<BluetoothDevice> = ArrayList(),
+    val bluetoothEnabled: Boolean = false,
+    val serviceActive: Boolean = false,
 )
 
 @HiltViewModel
@@ -28,6 +30,14 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 
     private val _viewState = MutableStateFlow(BluetoothState())
     val viewState: StateFlow<BluetoothState> = _viewState
+
+    fun checkBluetoothStatus(@ApplicationContext context: Context) {
+        if (!bluetoothAdapter.isEnabled){
+            _viewState.value = _viewState.value.copy(
+                bluetoothEnabled = true
+            )
+        }
+    }
 
     fun getSelectedDevice() {
         viewModelScope.launch {
@@ -88,6 +98,40 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
                     bluetoothDevice.name,
                     bluetoothDevice.address
                 )
+            )
+        }
+    }
+
+    fun startMediaPlayingService(@ApplicationContext context: Context) {
+        val bluetoothManager: BluetoothManager = context.getSystemService(BluetoothManager::class.java)
+        bluetoothAdapter = bluetoothManager.adapter
+
+        if (!bluetoothAdapter.isEnabled){
+            Toast.makeText(context, "Bluetooth not supported on device", Toast.LENGTH_SHORT).show()
+        }
+
+        context.startService(Intent(context, MediaPlayingService::class.java))
+
+        viewModelScope.launch {
+            _viewState.value = _viewState.value.copy(
+                serviceActive = true
+            )
+        }
+    }
+
+    fun stopMediaPlayingService(@ApplicationContext context: Context) {
+        val bluetoothManager: BluetoothManager = context.getSystemService(BluetoothManager::class.java)
+        bluetoothAdapter = bluetoothManager.adapter
+
+        if (!bluetoothAdapter.isEnabled){
+            Toast.makeText(context, "Bluetooth not supported on device", Toast.LENGTH_SHORT).show()
+        }
+
+        context.stopService(Intent(context, MediaPlayingService::class.java))
+
+        viewModelScope.launch {
+            _viewState.value = _viewState.value.copy(
+                serviceActive = false
             )
         }
     }
