@@ -3,7 +3,6 @@ package com.example.allblue
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
@@ -30,12 +29,6 @@ class MediaPlayingService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         isRunning = true
-        val sharedPref = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
-        with(sharedPref.edit()){
-            clear()
-            putBoolean("status", isRunning)
-            apply()
-        }
 
         Intent().also { intent ->
             intent.setAction("com.example.allblue_kotlin.SERVICE_STATUS")
@@ -87,37 +80,13 @@ class MediaPlayingService: Service() {
         super.onDestroy()
 
         isRunning=false
-        val sharedPref = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
-        with(sharedPref.edit()){
-            clear()
-            putBoolean("status", isRunning)
-            apply()
-        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
 
         isRunning=false
-        val sharedPref = getSharedPreferences("Service Running", Context.MODE_PRIVATE)
-        with(sharedPref.edit()){
-            clear()
-            putBoolean("status", isRunning)
-            apply()
-        }
     }
-//    private inner class ConnectBluetoothDevices {
-//        fun connect() {
-//            val sharedPref = getSharedPreferences("Selected Bluetooth Device", Context.MODE_PRIVATE)
-//
-//            try {
-//                val bluetoothDeviceObj = sharedPref.getString("uuid", "")
-//                bluetoothDeviceObj.connect()
-//            } catch (e: Exception) {
-//
-//            }
-//        }
-//    }
 }
 
 

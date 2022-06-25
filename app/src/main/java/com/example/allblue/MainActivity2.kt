@@ -37,7 +37,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity2 : ComponentActivity() {
 
-    //    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
+//    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
 //    val devices_list : ArrayList<BluetoothDevice> = ArrayList()
 //    val REQUEST_ENABLE_BT = 1
 //    val TAG = "Main Activity"
@@ -60,15 +60,18 @@ class MainActivity2 : ComponentActivity() {
             val address = bluetoothState.selectedDevice.address
 
             // Runtime
-
-
             multipleBluetoothPermission = rememberMultiplePermissionsState(permissions = listOf(
                 Manifest.permission_group.NEARBY_DEVICES,
                 Manifest.permission.BLUETOOTH_CONNECT,
             ))
 
+            LaunchedEffect(key1 = true, block = {
+                bluetoothViewModel.createNotificationChannel(context)
+            })
 
+            bluetoothViewModel.getServiceStatus()
             Main(
+
                 context,
                 multipleBluetoothPermission,
                 name,
@@ -79,6 +82,7 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel::startMediaPlayingService,
                 bluetoothViewModel::stopMediaPlayingService,
                 bluetoothState.serviceActive,
+                bluetoothViewModel::getServiceStatus,
             ) {}
         }
     }
@@ -96,7 +100,8 @@ fun Main(
     saveSelectedDevice: (device: BluetoothDevice) -> Unit,
     startService: (context: Context) -> Unit,
     stopService: (context: Context) -> Unit,
-    serviceState: Boolean,
+    serviceState: Boolean?,
+    getServiceStatus: () -> Unit,
     Content: @Composable () -> Unit,
 ) {
     Material3AppTheme {
@@ -147,6 +152,7 @@ fun Main(
                         FAB(startService,
                             stopService,
                             serviceState,
+                            getServiceStatus,
                             context,
                             contentPadding)
                     }
@@ -290,7 +296,8 @@ fun Section2(
 fun FAB(
     startService: (context: Context) -> Unit,
     stopService: (context: Context) -> Unit,
-    serviceState: Boolean,
+    serviceState: Boolean?,
+    getServiceStatus: () -> Unit,
     context: Context,
     contentPadding: PaddingValues,
 ) {
@@ -298,9 +305,16 @@ fun FAB(
     val initText = R.string.startallblue_service
     val elseText = R.string.stopallblue_service
 
-    var btnText by remember {
-        mutableStateOf(initText)
+    var btnText: Int
+
+    if (serviceState == true) {
+        btnText = elseText
+    } else {
+        btnText = initText
     }
+
+
+    Log.d("Service", "btnText: $btnText")
 
     Row(
         modifier = Modifier
@@ -312,7 +326,7 @@ fun FAB(
         ExtendedFloatingActionButton(
             containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
-                if (btnText == initText && serviceState) {
+                if (btnText == initText) {
                     btnText = elseText
                     startService(context)
                 } else {
@@ -346,5 +360,6 @@ fun DefaultPreview() {
         startService = {},
         stopService = {},
         serviceState = BluetoothState().serviceActive,
+        getServiceStatus = {},
     ) {}
 }

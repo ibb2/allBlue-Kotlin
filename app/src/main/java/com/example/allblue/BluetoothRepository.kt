@@ -8,9 +8,11 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -26,6 +28,7 @@ class BluetoothRepository @Inject constructor(private val dataStore: DataStore<P
         val BLUETOOTH_UUID = stringPreferencesKey("UUID")
         val BLUETOOTH_NAME = stringPreferencesKey("name")
         val BLUETOOTH_ADDRESS = stringPreferencesKey("address")
+        val SERVICE_STATUS = booleanPreferencesKey("service_status")
     }
 
     val selectedDevice = dataStore.data.map { device ->
@@ -35,6 +38,19 @@ class BluetoothRepository @Inject constructor(private val dataStore: DataStore<P
             device[BLUETOOTH_ADDRESS] ?: "")
     }
 
+    suspend fun serviceStatus(bool: Boolean) {
+        dataStore.edit {
+            it[SERVICE_STATUS] = bool
+        }
+    }
+
+    fun readServiceStatus(): Flow<Boolean?> {
+        val status = dataStore.data.map {
+            it[SERVICE_STATUS]
+        }
+
+        return status
+    }
 
     suspend fun saveDevice(bluetoothDevice: BluetoothDevice): Unit {
         dataStore.edit { device ->
