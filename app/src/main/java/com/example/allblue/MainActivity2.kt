@@ -31,18 +31,20 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.Material3AppTheme
-import com.google.accompanist.permissions.*
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity2 : ComponentActivity() {
 
-//    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
+    //    val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
 //    val devices_list : ArrayList<BluetoothDevice> = ArrayList()
 //    val REQUEST_ENABLE_BT = 1
 //    val TAG = "Main Activity"
 //    lateinit var binding: ActivityMainBinding
-    lateinit var multipleBluetoothPermission: MultiplePermissionsState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,20 +62,29 @@ class MainActivity2 : ComponentActivity() {
             val address = bluetoothState.selectedDevice.address
 
             // Runtime
-            multipleBluetoothPermission = rememberMultiplePermissionsState(permissions = listOf(
-                Manifest.permission_group.NEARBY_DEVICES,
-                Manifest.permission.BLUETOOTH_CONNECT,
-            ))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val multipleBluetoothPermissionState =
+                    rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
+
+                when (multipleBluetoothPermissionState.status) {
+                    PermissionStatus.Granted -> {
+                    }
+                    is PermissionStatus.Denied -> {
+                        SideEffect {
+                            multipleBluetoothPermissionState.launchPermissionRequest()
+                        }
+                    }
+                }
+            }
 
             LaunchedEffect(key1 = true, block = {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
             bluetoothViewModel.getServiceStatus()
-            Main(
 
+            Main(
                 context,
-                multipleBluetoothPermission,
                 name,
                 address,
                 bluetoothViewModel::getPairedDevices,
@@ -92,7 +103,6 @@ class MainActivity2 : ComponentActivity() {
 @Composable
 fun Main(
     context: Context,
-    multiplePermissionsState: MultiplePermissionsState,
     name: String,
     address: String,
     getPairedDevices: (context: Context) -> Unit,
@@ -144,7 +154,6 @@ fun Main(
                         Section1(name, address, contentPadding)
                         Spacer(modifier = Modifier.padding(20.dp))
                         Section2(
-                            multiplePermissionsState,
                             getPairedDevices,
                             PairedDevices,
                             saveSelectedDevice,
@@ -199,29 +208,22 @@ fun Section1(
 
 @Composable
 fun Section2(
-    multiplePermissionsState: MultiplePermissionsState,
     getPairedDevices: (context: Context) -> Unit,
     PairedDevices: ArrayList<BluetoothDevice>,
     saveSelectedDevice: (device: BluetoothDevice) -> Unit,
     context: Context,
 ) {
 
-    val allRevoked =
-        multiplePermissionsState.permissions.size == multiplePermissionsState.revokedPermissions.size
-
-    if (allRevoked) {
-        SideEffect {
-            multiplePermissionsState.launchMultiplePermissionRequest()
+    val bluetoothPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            rememberPermissionState(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            null
         }
-    } else {
-        getPairedDevices(context)
-    }
 
-    lateinit var bluetoothPermissionState: PermissionState
+    val bluetoothPermissionState = bluetoothPermission?.status?.isGranted
 
-    bluetoothPermissionState = rememberPermissionState(
-        Manifest.permission.BLUETOOTH_CONNECT
-    )
+    getPairedDevices(context)
 
     // Lazy Column list of all paired bluetooth devices
     val pairedDevices: ArrayList<BluetoothDevice> = PairedDevices
@@ -235,7 +237,7 @@ fun Section2(
             Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
                 color = MaterialTheme.colorScheme.secondary)
 
-            if (!allRevoked) {
+            if ((bluetoothPermissionState == true && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)) {
                 LazyColumn(modifier = Modifier
                     .height(300.dp)
                     .padding(vertical = 16.dp)
@@ -261,9 +263,6 @@ fun Section2(
                                 //                                          int[] grantResults)
                                 // to handle the case where the user grants the permission. See the documentation
                                 // for ActivityCompat#requestPermissions for more details.
-                                SideEffect {
-                                    bluetoothPermissionState.launchPermissionRequest()
-                                }
                             }
                             Text(text = pairedDevice.name,
                                 textAlign = TextAlign.Start,
@@ -279,14 +278,11 @@ fun Section2(
                     }
                 }
             } else {
-                Column(
+                Text(
+                    text = stringResource(id = R.string.enable_nearby_scanning_permission),
                     modifier = Modifier
-                        .height(300.dp)
                         .padding(vertical = 16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    Text(text = stringResource(id = R.string.enable_nearby_scanning_permission))
-                }
+                )
             }
         }
     }
@@ -348,10 +344,6 @@ fun DefaultPreview() {
 
     Main(
         context,
-        multiplePermissionsState = rememberMultiplePermissionsState(listOf(
-            Manifest.permission_group.NEARBY_DEVICES,
-            Manifest.permission.BLUETOOTH_CONNECT
-        )),
         name = UserDevice().name,
         address = UserDevice().address,
         getPairedDevices = {},

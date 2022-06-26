@@ -7,8 +7,9 @@
         android:maxSdkVersion="30" />
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADMIN"
-        android:maxSdkVersion="30" /> <!-- Request Nearby Devices permission -->
-    <uses-permission android:name="android.permission-group.NEARBY_DEVICES" />
+        android:maxSdkVersion="30" />
+    <!-- Request Nearby Devices permission -->
+    <!--    <uses-permission android:name="android.permission-group.NEARBY_DEVICES" />-->
     <!--
  Needed only if your app looks for Bluetooth devices.
          If your app doesn't use Bluetooth scan results to derive physical
