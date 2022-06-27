@@ -26,7 +26,7 @@ data class BluetoothState(
     val selectedDevice: UserDevice = UserDevice(),
     val pairedDevices: ArrayList<BluetoothDevice> = ArrayList(),
     val bluetoothEnabled: Boolean = false,
-    val serviceActive: Boolean? = false,
+    val serviceActive: Boolean = false,
 )
 
 @HiltViewModel
@@ -48,6 +48,17 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 //            )
 //        }
 //    }
+    override fun onCleared() {
+        super.onCleared()
+        clearMediaPlayingService()
+        viewModelScope.launch {
+            bluetoothRepository.serviceStatus(false)
+
+            _viewState.value = _viewState.value.copy(
+                serviceActive = false
+            )
+        }
+    }
 
     fun getSelectedDevice() {
         viewModelScope.launch {
@@ -114,15 +125,14 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 
     fun getServiceStatus() {
         viewModelScope.launch {
-            val status = bluetoothRepository.readServiceStatus().first()
+            val status = bluetoothRepository.currentServiceStatus.first()
 
             _viewState.value = _viewState.value.copy(
-                serviceActive = status
+                serviceActive = bluetoothRepository.currentServiceStatus.first()
             )
 
-            Log.d("Service", "Service Beign Called or nah? $status")
+            Log.d("Service", "Service Being Called or nah? $status")
         }
-
     }
 
     fun startMediaPlayingService(@ApplicationContext context: Context) {
@@ -134,14 +144,13 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
         }
 
         context.startService(Intent(context, MediaPlayingService::class.java))
-        Log.d("Service", "Starting Service")
 
         viewModelScope.launch {
 
             bluetoothRepository.serviceStatus(true)
 
             _viewState.value = _viewState.value.copy(
-                serviceActive = true
+                serviceActive = true,
             )
         }
     }
@@ -155,10 +164,20 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
         }
 
         context.stopService(Intent(context, MediaPlayingService::class.java))
-        Log.d("Service", "Stopping Service")
 
         viewModelScope.launch {
             bluetoothRepository.serviceStatus(false)
+
+            _viewState.value = _viewState.value.copy(
+                serviceActive = false,
+            )
+        }
+    }
+
+    private fun clearMediaPlayingService() {
+        viewModelScope.launch {
+
+            val serviceStatus = bluetoothRepository.serviceStatus(false)
 
             _viewState.value = _viewState.value.copy(
                 serviceActive = false

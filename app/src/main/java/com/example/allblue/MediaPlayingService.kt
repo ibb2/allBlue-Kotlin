@@ -9,10 +9,16 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.concurrent.thread
 
+@AndroidEntryPoint
+class MediaPlayingService : Service() {
 
-class MediaPlayingService: Service() {
+    @Inject lateinit var bluetoothRepository: BluetoothRepository
 
     private val ONGOING_NOTIFICATION_ID = 1
     private val CHANNEL_DEFAULT_IMPORTANCE = "Media Playing Service"
@@ -21,7 +27,7 @@ class MediaPlayingService: Service() {
     var audioPlayingStatus: Boolean = false
 
     override fun onBind(p0: Intent?): IBinder? {
-        return  null
+        return null
     }
 
     @Suppress("DEPRECATION")
@@ -30,23 +36,26 @@ class MediaPlayingService: Service() {
 
         isRunning = true
 
-        Intent().also { intent ->
-            intent.setAction("com.example.allblue_kotlin.SERVICE_STATUS")
-            intent.putExtra("serviceStatus", isRunning)
-            sendBroadcast(intent)
+        Intent().also { intents ->
+            intents.setAction("com.example.allblue_kotlin.SERVICE_STATUS")
+            intents.putExtra("serviceStatus", isRunning)
+            sendBroadcast(intents)
         }
 
-        val pendingIntent: PendingIntent = Intent(this, MainActivity::class.java).let { notificationIntent ->
-            PendingIntent.getActivity(this, 0, notificationIntent,
-                PendingIntent.FLAG_IMMUTABLE) }
+        val pendingIntent: PendingIntent =
+            Intent(this, MainActivity::class.java).let { notificationIntent ->
+                PendingIntent.getActivity(this, 0, notificationIntent,
+                    PendingIntent.FLAG_IMMUTABLE)
+            }
 
-        val notification: Notification = NotificationCompat.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
-            .setContentTitle("allBlue - status")
-            .setContentText("Running")
-            .setContentIntent(pendingIntent)
-            .setPriority(Notification.PRIORITY_DEFAULT)
-            .setTicker("blank")
-            .build()
+        val notification: Notification =
+            NotificationCompat.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
+                .setContentTitle("allBlue - status")
+                .setContentText("Running")
+                .setContentIntent(pendingIntent)
+                .setPriority(Notification.PRIORITY_DEFAULT)
+                .setTicker("blank")
+                .build()
 
         thread(true) {
 
@@ -64,7 +73,6 @@ class MediaPlayingService: Service() {
                         intent.putExtra("data", audioPlayingStatus)
                         sendBroadcast(intent)
                     }
-
                 }
                 Thread.sleep(5000)
             }
@@ -78,14 +86,21 @@ class MediaPlayingService: Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopForeground(true)
+        GlobalScope.launch {
+            bluetoothRepository.serviceStatus(false)
+        }
+        isRunning = false
 
-        isRunning=false
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-
-        isRunning=false
+        stopForeground(true)
+        GlobalScope.launch {
+            bluetoothRepository.serviceStatus(false)
+        }
+        isRunning = false
     }
 }
 
