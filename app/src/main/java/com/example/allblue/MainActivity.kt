@@ -25,7 +25,7 @@ import java.util.*
 
 private var musicStatusBool = false
 private val MY_UUID = UUID.fromString("81e615ee-072b-467c-b28f-5b60ad934e38")
-private lateinit var bluetoothAdapter: BluetoothAdapter
+lateinit var bluetoothAdapter: BluetoothAdapter
 
 class MainActivity : AppCompatActivity() {
 
