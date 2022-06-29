@@ -2,4 +2,22 @@
     <string name="app_name">allBlue</string>
     <string name="channel_name">Main Activity Notifications</string>
     <string name="channel_description">Notifications related to Main Activity</string>
+    <string name="selected_device">Selected device</string>
+    <string name="startallblue_service">Start Service</string>
+    <string name="stopallblue_service">Stop Service</string>
+    <string name="select_device_that_you_want_to_connect_to">(Select bluetooth device to use)</string>
+    <string name="paired_bluetooth_devices">Paired Bluetooth Devices</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="bluetooth_mac_address">Bluetooth Mac Address</string>
+    <string name="page_title">allBlue</string>
+    <string name="content_description_search" />
+    <string name="edit" />
+    <string name="favorite" />
+    <string name="content_description_favorite" />
+    <string name="more" />
+    <string name="content_description_more" />
+    <string name="content_description_menu">3 Horizontal line icon, representing settings. Toggleable options related to application features</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="enable_nearby_scanning_permission">Please enable Nearby Scanning permissions for this app to display and connect to paired bluetooth devices.</string>
+    <string name="launch_nearby_scanning_request">Launch request</string>
 </resources>
