@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -13,7 +13,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.allblue.databinding.ActivityMainBinding
+import com.subsolis.allblue.databinding.ActivityMainBinding
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

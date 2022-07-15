@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice

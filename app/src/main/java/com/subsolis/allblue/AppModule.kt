@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.content.Context
 import androidx.datastore.core.DataStore
