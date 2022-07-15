@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.Manifest
 import android.bluetooth.BluetoothDevice
@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.compose.Material3AppTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.subsolis.compose.Material3AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -46,7 +46,7 @@ class MainActivity2 : ComponentActivity() {
 //    val TAG = "Main Activity"
 //    lateinit var binding: ActivityMainBinding
     // Broadcast Receiver Val
-    private val br: BroadcastReceiver = com.example.allblue.BroadcastReceiver()
+    private val br: BroadcastReceiver = com.subsolis.allblue.BroadcastReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

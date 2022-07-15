@@ -1,4 +1,4 @@
-package com.example.compose
+package com.subsolis.compose
 import androidx.compose.ui.graphics.Color
 
 

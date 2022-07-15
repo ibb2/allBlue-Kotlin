@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.app.Application
 import com.google.android.material.color.DynamicColors
