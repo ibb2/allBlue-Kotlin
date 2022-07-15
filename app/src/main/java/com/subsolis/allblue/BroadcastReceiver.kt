@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter

@@ -1,4 +1,4 @@
-package com.example.compose
+package com.subsolis.compose
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -6,8 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
-import com.example.ui.theme.AppTypography
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.subsolis.ui.theme.AppTypography
 
 private val LightThemeColors = lightColorScheme(
 

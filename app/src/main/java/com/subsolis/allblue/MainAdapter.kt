@@ -1,4 +1,4 @@
-package com.example.allblue
+package com.subsolis.allblue
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -6,7 +6,7 @@ import android.net.MacAddress
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.allblue.databinding.BluetoothDeviceListBinding
+import com.subsolis.allblue.databinding.BluetoothDeviceListBinding
 
 class MainAdapter(private val pairedDevice: List<BluetoothDevice>?, private val onItemClick: (position: Int) -> Unit) : RecyclerView.Adapter<MainAdapter.MainViewHolder>() {
 
