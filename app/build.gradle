@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -103,4 +104,11 @@ dependencies {
     // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
+
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:30.3.2')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
 }

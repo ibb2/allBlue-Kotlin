@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "594562406225",
+    "project_id": "allblue-androida-1657859729384",
+    "storage_bucket": "allblue-androida-1657859729384.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594562406225:android:f83d9449ea7a6e91986570",
+        "android_client_info": {
+          "package_name": "com.subsolis.allblue"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "594562406225-8j62280hkh409tjkmbv38av4d4a1esld.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.subsolis.allblue",
+            "certificate_hash": "07cc6ccbe87dc366dac993d310424f3bd2c3515b"
+          }
+        },
+        {
+          "client_id": "594562406225-k79n9q0131bocfgib7hp2e1jklceddn5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOMl4jTvGqjyWrtiDRnu2LzYVopnTP32c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "594562406225-k79n9q0131bocfgib7hp2e1jklceddn5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
