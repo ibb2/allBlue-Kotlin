@@ -14,10 +14,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +36,10 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.subsolis.allblue.Login.LoginViewModel
 import com.subsolis.compose.Material3AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -46,10 +52,14 @@ class MainActivity2 : ComponentActivity() {
 //    val TAG = "Main Activity"
 //    lateinit var binding: ActivityMainBinding
     // Broadcast Receiver Val
+    private lateinit var auth: FirebaseAuth
     private val br: BroadcastReceiver = com.subsolis.allblue.BroadcastReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Firebase Auth Instantiate
+        auth = Firebase.auth
 
         // Register Broadcast Receiver
         val filter = IntentFilter("com.example.allblue_kotlin.MUSIC_ACTIVE_STATUS_CHANGED").apply {
@@ -61,6 +71,9 @@ class MainActivity2 : ComponentActivity() {
             val bluetoothViewModel: BluetoothViewModel = viewModel()
             val bluetoothState = bluetoothViewModel.viewState.collectAsState().value
             val context = LocalContext.current
+
+            val authViewModel: LoginViewModel = viewModel()
+            val authState = authViewModel.viewstate.collectAsState().value
 
             // Instantiate a model even if blank, of selected bluetooth device
             bluetoothViewModel.getSelectedDevice()
@@ -89,18 +102,22 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
-            Main(
-                context,
-                name,
-                address,
-                bluetoothViewModel::getPairedDevices,
-                bluetoothState.pairedDevices,
-                bluetoothViewModel::saveSelectedDevice,
-                bluetoothViewModel::startMediaPlayingService,
-                bluetoothViewModel::stopMediaPlayingService,
-                bluetoothState.serviceActive,
-                bluetoothViewModel::getServiceStatus,
-            ) {}
+            if (authState.LoggedIn == true) {
+                Main(
+                    context,
+                    name,
+                    address,
+                    bluetoothViewModel::getPairedDevices,
+                    bluetoothState.pairedDevices,
+                    bluetoothViewModel::saveSelectedDevice,
+                    bluetoothViewModel::startMediaPlayingService,
+                    bluetoothViewModel::stopMediaPlayingService,
+                    bluetoothState.serviceActive,
+                    bluetoothViewModel::getServiceStatus,
+                ) {}
+            } else {
+                LoginScreen()
+            }
         }
     }
 
@@ -350,6 +367,52 @@ fun FAB(
             }) {
             Text(text = stringResource(id = btnText),
                 color = MaterialTheme.colorScheme.onTertiary)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginScreen() {
+    Material3AppTheme() {
+        Scaffold { padding ->
+            padding
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                GoogleSignIn()
+            }
+        }
+    }
+}
+
+@Composable
+fun GoogleSignIn() {
+    Surface(
+        color = MaterialTheme.colorScheme.onPrimary,
+        shadowElevation = 0.dp,
+        shape = RoundedCornerShape(5.dp),
+        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(
+                    start = 12.dp,
+                    end = 16.dp,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_google_logo),
+                contentDescription = "SignInButton",
+                tint = androidx.compose.ui.graphics.Color.Unspecified,
+            )
+
+            Text(text = "Sign in with Google")
         }
     }
 }

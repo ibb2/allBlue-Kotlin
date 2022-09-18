@@ -43,7 +43,7 @@
             android:theme="@style/Theme.AllBlueKotlin" />
 
         <activity
-            android:name=".view.LoginActivity"
+            android:name=".MainActivity2"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -24,8 +24,6 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         setContent {
             Text(text = "Welcome", fontSize = 32.sp)
             MainBody() {}
