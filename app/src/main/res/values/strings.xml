@@ -20,4 +20,5 @@
     <string name="title_activity_main2">MainActivity2</string>
     <string name="enable_nearby_scanning_permission">Please enable Nearby Scanning permissions for this app to display and connect to paired bluetooth devices.</string>
     <string name="launch_nearby_scanning_request">Launch request</string>
+    <string name="firebase_client_id">07:cc:6c:cb:e8:7d:c3:66:da:c9:93:d3:10:42:4f:3b:d2:c3:51:5b</string>
 </resources>
