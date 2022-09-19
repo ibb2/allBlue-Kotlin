@@ -3,6 +3,8 @@
 package com.subsolis.allblue
 
 import android.Manifest
+import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,7 +14,9 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -36,12 +40,22 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider.getCredential
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.subsolis.allblue.Login.LoginViewModel
 import com.subsolis.compose.Material3AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+
+// Tags
+private val TAG_SIGNIN = "Google Sign In"
+private val TAG_FIREBASE = "Firebase backend auth"
+private val TAG_GOOGLE = "Google Sign In Results"
 
 @AndroidEntryPoint
 class MainActivity2 : ComponentActivity() {
@@ -52,8 +66,15 @@ class MainActivity2 : ComponentActivity() {
 //    val TAG = "Main Activity"
 //    lateinit var binding: ActivityMainBinding
     // Broadcast Receiver Val
-    private lateinit var auth: FirebaseAuth
     private val br: BroadcastReceiver = com.subsolis.allblue.BroadcastReceiver()
+
+    // Google Sign in
+    private lateinit var oneTapClient: SignInClient
+    private lateinit var signInRequest: BeginSignInRequest
+    private lateinit var signUpRequest: BeginSignInRequest
+
+    // Firebase
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,10 +88,31 @@ class MainActivity2 : ComponentActivity() {
         }
         registerReceiver(br, filter)
 
+        // Google Onetap Sign in
+        oneTapClient = Identity.getSignInClient(this)
+        signInRequest = BeginSignInRequest.builder()
+            .setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true)
+                    .setServerClientId(getString(R.string.firebase_client_id))
+                    .setFilterByAuthorizedAccounts(true)
+                    .build())
+            .setAutoSelectEnabled(true)
+            .build()
+        signUpRequest = BeginSignInRequest.builder()
+            .setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true)
+                    .setServerClientId(getString(R.string.firebase_client_id))
+                    .setFilterByAuthorizedAccounts(false)
+                    .build())
+            .build()
+
         setContent {
             val bluetoothViewModel: BluetoothViewModel = viewModel()
             val bluetoothState = bluetoothViewModel.viewState.collectAsState().value
             val context = LocalContext.current
+            val activity = LocalContext.current as Activity
 
             val authViewModel: LoginViewModel = viewModel()
             val authState = authViewModel.viewstate.collectAsState().value
@@ -81,6 +123,8 @@ class MainActivity2 : ComponentActivity() {
             // Get the name and address of saved device from UserDevice state
             val name = bluetoothState.selectedDevice.name
             val address = bluetoothState.selectedDevice.address
+
+            // Firebase Auth
 
             // Runtime
             val multipleBluetoothPermissionState =
@@ -116,7 +160,13 @@ class MainActivity2 : ComponentActivity() {
                     bluetoothViewModel::getServiceStatus,
                 ) {}
             } else {
-                LoginScreen()
+                LoginScreen(
+                    activity,
+                    oneTapClient,
+                    signInRequest,
+                    signUpRequest,
+                    authViewModel,
+                    auth)
             }
         }
     }
@@ -373,7 +423,62 @@ fun FAB(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    activity: Activity,
+    oneTapClient: SignInClient,
+    signInRequest: BeginSignInRequest,
+    signUpRequest: BeginSignInRequest,
+    loginViewModel: LoginViewModel,
+    auth: FirebaseAuth,
+) {
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
+            Log.e("Credentials", credential.toString())
+            val idToken = credential.googleIdToken
+
+            if (idToken != null) {
+                // Got an ID token from Google. Use it to authenticate
+                // with your backend.
+
+                when {
+                    idToken != null -> {
+                        // Got an ID token from Google. Use it to authenticate
+                        // with Firebase.
+                        val firebaseCredential = getCredential(idToken, null)
+                        auth.signInWithCredential(firebaseCredential)
+                            .addOnCompleteListener(activity) { task ->
+                                if (task.isSuccessful) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.d(TAG_FIREBASE, "signInWithCredential:success")
+                                    val user = auth.currentUser
+                                    //                                updateUI(user)
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG_FIREBASE,
+                                        "signInWithCredential:failure",
+                                        task.exception)
+                                    //                                updateUI(null)
+                                }
+                            }
+                    }
+                    else -> {
+                        // Shouldn't happen.
+                        Log.d(TAG_GOOGLE, "No ID token!")
+                    }
+                }
+                Log.d("LOG", idToken)
+            } else {
+                Log.d("LOG", "Null Token 5")
+            }
+        } else {
+            Log.e("Response", "No results were not ok ${result.resultCode}")
+        }
+    }
+
     Material3AppTheme() {
         Scaffold { padding ->
             padding
@@ -382,40 +487,42 @@ fun LoginScreen() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                GoogleSignIn()
+                val scope = rememberCoroutineScope()
+                Surface(
+                    onClick = {
+                        scope.launch {
+                            loginViewModel.signIn(activity, oneTapClient, signInRequest, signUpRequest, launcher)
+                        }
+                    },
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    shadowElevation = 0.dp,
+                    shape = RoundedCornerShape(5.dp),
+                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primaryContainer),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(
+                                start = 12.dp,
+                                end = 16.dp,
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_google_logo),
+                            contentDescription = "SignInButton",
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
+                        )
+
+                        Text(text = "Sign in with Google")
+                    }
+                }
             }
         }
     }
 }
 
-@Composable
-fun GoogleSignIn() {
-    Surface(
-        color = MaterialTheme.colorScheme.onPrimary,
-        shadowElevation = 0.dp,
-        shape = RoundedCornerShape(5.dp),
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(
-                    start = 12.dp,
-                    end = 16.dp,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-
-            Icon(
-                painter = painterResource(id = R.drawable.ic_google_logo),
-                contentDescription = "SignInButton",
-                tint = androidx.compose.ui.graphics.Color.Unspecified,
-            )
-
-            Text(text = "Sign in with Google")
-        }
-    }
-}
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
