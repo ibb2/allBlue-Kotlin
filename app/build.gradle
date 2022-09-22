@@ -74,9 +74,6 @@ dependencies {
     // (Java only)
     implementation("androidx.work:work-runtime:$work_version")
 
-    // Google play services
-    implementation "com.google.android.gms:play-services-auth:$play_version"
-
     // Kotlin + coroutines
     implementation("androidx.work:work-runtime-ktx:$work_version")
     testImplementation 'junit:junit:4.13.2'
@@ -92,29 +89,25 @@ dependencies {
 
 
     // Preferences DataStore (SharedPreferences like APIs)
-
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
     // optional - RxJava2 support
     implementation "androidx.datastore:datastore-preferences-rxjava2:1.0.0"
 
-    implementation "com.google.dagger:hilt-android:2.38.1"
-    kapt "com.google.dagger:hilt-compiler:2.38.1"
+    implementation "com.google.dagger:hilt-android:2.43.2"
+    kapt "com.google.dagger:hilt-compiler:2.43.2"
 
     // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
 
-    // Import the Firebase BoM
-    implementation platform('com.google.firebase:firebase-bom:30.3.2')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:30.4.1')
 
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-firestore-ktx'
-    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.3')
 
-    // Google Onetap sign in
-    implementation 'com.google.android.gms:play-services-auth:20.3.0'
+    // Google play services
+    implementation "com.google.android.gms:play-services-auth:$play_version"
 }

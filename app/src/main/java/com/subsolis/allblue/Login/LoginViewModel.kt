@@ -18,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 val viewModelAuth = Firebase.auth
@@ -53,7 +52,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    suspend fun signIn(
+    fun signIn(
         activity: Activity,
         oneTapClient: SignInClient,
         signInRequest: BeginSignInRequest,
@@ -62,7 +61,6 @@ class LoginViewModel @Inject constructor(
     ) {
 
 
-//      Google One tap Sign in
         oneTapClient.beginSignIn(signInRequest)
             .addOnSuccessListener(activity) { result ->
                 try {
@@ -74,27 +72,22 @@ class LoginViewModel @Inject constructor(
                 }
             }
             .addOnFailureListener(activity) { e ->
-                // No saved credentials found. Launch the One Tap sign-up flow, or
-                // do nothing and continue presenting the signed-out UI.
 
-                e.localizedMessage?.let { Log.d(TAG_SIGNIN, "$it") }
+                e.localizedMessage?.let { Log.d(TAG_SIGNUP, "$it: non functional") }
 
-                try {
-                    // Use await() from https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-play-services
-                    // Instead of listeners that aren't cleaned up automatically
-                    viewModelScope.launch {
-                        val result = oneTapClient.beginSignIn(signUpRequest).await()
-
-                        val intentSenderRequest = IntentSenderRequest.Builder(result.pendingIntent).build()
-                        launcher.launch(intentSenderRequest)
+                oneTapClient.beginSignIn(signUpRequest)
+                    .addOnSuccessListener(activity) { result ->
+                        try {
+                            val intentSenderRequest = IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                            launcher.launch(intentSenderRequest)
+                        } catch (e: IntentSender.SendIntentException) {
+                            Log.e(TAG_SIGNUP, "Couldn't start One Tap UI: ${e.localizedMessage}")
+                        }
                     }
-                } catch (e: Exception) {
-                    // No saved credentials found. Launch the One Tap sign-up flow, or
-                    // do nothing and continue presenting the signed-out UI.
-                    Log.d("LOG", e.message.toString())
-                }
-
+                    .addOnFailureListener(activity) { e ->
+                        // No Google Accounts found. Just continue presenting the signed-out UI.
+                        e.localizedMessage?.let { Log.d(TAG_SIGNUP, "$it: even less non functional") }
+                    }
             }
     }
-
 }

@@ -88,25 +88,6 @@ class MainActivity2 : ComponentActivity() {
         }
         registerReceiver(br, filter)
 
-        // Google Onetap Sign in
-        oneTapClient = Identity.getSignInClient(this)
-        signInRequest = BeginSignInRequest.builder()
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setServerClientId(getString(R.string.firebase_client_id))
-                    .setFilterByAuthorizedAccounts(true)
-                    .build())
-            .setAutoSelectEnabled(true)
-            .build()
-        signUpRequest = BeginSignInRequest.builder()
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setServerClientId(getString(R.string.firebase_client_id))
-                    .setFilterByAuthorizedAccounts(false)
-                    .build())
-            .build()
 
         setContent {
             val bluetoothViewModel: BluetoothViewModel = viewModel()
@@ -123,6 +104,26 @@ class MainActivity2 : ComponentActivity() {
             // Get the name and address of saved device from UserDevice state
             val name = bluetoothState.selectedDevice.name
             val address = bluetoothState.selectedDevice.address
+
+            // Google Onetap Sign in
+            oneTapClient = Identity.getSignInClient(context)
+            signInRequest = BeginSignInRequest.builder()
+                .setGoogleIdTokenRequestOptions(
+                    BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                        .setSupported(true)
+                        .setServerClientId(getString(R.string.firebase_client_id))
+                        .setFilterByAuthorizedAccounts(true)
+                        .build())
+                .setAutoSelectEnabled(true)
+                .build()
+            signUpRequest = BeginSignInRequest.builder()
+                .setGoogleIdTokenRequestOptions(
+                    BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                        .setSupported(true)
+                        .setServerClientId(getString(R.string.firebase_client_id))
+                        .setFilterByAuthorizedAccounts(false)
+                        .build())
+                .build()
 
             // Firebase Auth
 
@@ -463,6 +464,9 @@ fun LoginScreen(
                                         task.exception)
                                     //                                updateUI(null)
                                 }
+                            }
+                            .addOnFailureListener(activity) { e ->
+                                Log.e("FIREBASE", "Failure: $e")
                             }
                     }
                     else -> {
