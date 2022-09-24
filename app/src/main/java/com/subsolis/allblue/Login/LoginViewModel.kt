@@ -23,8 +23,8 @@ import javax.inject.Inject
 val viewModelAuth = Firebase.auth
 
 data class UserState(
-    val LoggedIn: Boolean? = false,
-    val firebaseAuth: FirebaseAuth? = viewModelAuth,
+    val LoggedIn: Boolean = false,
+    val firebaseAuth: FirebaseAuth = viewModelAuth,
     val cancelled: Boolean = false,
 )
 

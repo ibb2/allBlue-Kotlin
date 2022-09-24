@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.subsolis.allblue"
         minSdk 23
-        targetSdk 32
+        targetSdk 33
         versionCode 2
         versionName "2.0"
 
@@ -43,7 +43,7 @@ android {
     namespace 'com.subsolis.allblue'
 
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion kotlin_compiler
     }
     packagingOptions {
         resources {
@@ -54,25 +54,57 @@ android {
 }
 
 dependencies {
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.0.0-alpha13'
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.4.0'
-    implementation 'androidx.compose.material:material:1.2.0-rc01'
-    implementation 'androidx.compose.animation:animation:1.1.1'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+    //Hilt
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation 'androidx.fragment:fragment-ktx:1.3.2'
-    implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    //AndroidX
+    implementation "androidx.core:core-ktx:$core_version"
+    implementation "androidx.appcompat:appcompat:$appcompat_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$live_data_version"
+
+    //Material
     implementation "com.google.android.material:material:$material_version"
-    // (Java only)
-    implementation("androidx.work:work-runtime:$work_version")
+    //Compose
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.hilt:hilt-navigation-compose:$hilt_navigation_compose_version"
+    //Firebase
+    implementation platform("com.google.firebase:firebase-bom:$firebase_bom_version")
+    implementation "com.google.firebase:firebase-auth-ktx"
+    implementation "com.google.firebase:firebase-firestore-ktx"
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    //Play Services
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$play_services_version"
+    implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
+    //Accompanist
+    implementation "com.google.accompanist:accompanist-navigation-animation:$accompanist_version"
+    //Coil
+    implementation "io.coil-kt:coil-compose:$coil_compose_version"
+
+    // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
+    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
+
+    // Tooling support (Previews, etc.)
+    implementation("androidx.compose.ui:ui-tooling:$compose_version")
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation("androidx.compose.foundation:foundation:$compose_version")
+
+    // Material design icons
+    implementation("androidx.compose.material:material-icons-core:$compose_version")
+    implementation("androidx.compose.material:material-icons-extended:$compose_version")
+    // Integration with observables
+    implementation("androidx.compose.runtime:runtime-livedata:$compose_version")
+    implementation("androidx.compose.runtime:runtime-rxjava2:$compose_version")
+
+    // UI Tests
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.2.1")
+
+    // Material 3 (Beta)
+    implementation("androidx.compose.material3:material3:$material_3")
+    implementation("androidx.compose.material3:material3-window-size-class:$material_3")
 
     // Kotlin + coroutines
     implementation("androidx.work:work-runtime-ktx:$work_version")
@@ -81,33 +113,24 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // ViewModel
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
-    // LiveData
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$live_data_version")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$live_data_version")
+    // Lifecycles only (without ViewModel or LiveData)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$live_data_version")
 
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$view_model"
+    // Saved state module for ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$live_data_version")
 
+    // alternately - if using Java8, use the following instead of lifecycle-compiler
+    implementation("androidx.lifecycle:lifecycle-common-java8:$live_data_version")
 
     // Preferences DataStore (SharedPreferences like APIs)
-    implementation "androidx.datastore:datastore-preferences:1.0.0"
+    implementation("androidx.datastore:datastore-preferences:$datastore")
 
     // optional - RxJava2 support
-    implementation "androidx.datastore:datastore-preferences-rxjava2:1.0.0"
+    implementation("androidx.datastore:datastore-preferences-rxjava2:$datastore")
 
-    implementation "com.google.dagger:hilt-android:2.43.2"
-    kapt "com.google.dagger:hilt-compiler:2.43.2"
-
-    // Android Accompanist (Random library for stuff such as API for quick statusbar color change)
-    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
-
-    // Import the BoM for the Firebase platform
-    implementation platform('com.google.firebase:firebase-bom:30.4.1')
-
-    // Add the dependency for the Firebase Authentication library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation 'com.google.firebase:firebase-auth-ktx'
-
-    // Google play services
-    implementation "com.google.android.gms:play-services-auth:$play_version"
+    // optional - RxJava3 support
+    implementation("androidx.datastore:datastore-preferences-rxjava3:$datastore")
 }

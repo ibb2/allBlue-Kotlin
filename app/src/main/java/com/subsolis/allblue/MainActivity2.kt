@@ -147,7 +147,7 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
-            if (authState.LoggedIn == true) {
+            if (authState.LoggedIn) {
                 Main(
                     context,
                     name,
