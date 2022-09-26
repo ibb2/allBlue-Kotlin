@@ -88,15 +88,16 @@ class MainActivity2 : ComponentActivity() {
         }
         registerReceiver(br, filter)
 
-
         setContent {
             val bluetoothViewModel: BluetoothViewModel = viewModel()
             val bluetoothState = bluetoothViewModel.viewState.collectAsState().value
             val context = LocalContext.current
             val activity = LocalContext.current as Activity
 
-            val authViewModel: LoginViewModel = viewModel()
-            val authState = authViewModel.viewstate.collectAsState().value
+            val loginViewModel: LoginViewModel = viewModel()
+            val loginState = loginViewModel.viewstate.collectAsState().value
+
+            loginViewModel.loginStatus(auth)
 
             // Instantiate a model even if blank, of selected bluetooth device
             bluetoothViewModel.getSelectedDevice()
@@ -147,7 +148,7 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
-            if (authState.LoggedIn) {
+            if (loginState.LoggedIn) {
                 Main(
                     context,
                     name,
@@ -166,7 +167,7 @@ class MainActivity2 : ComponentActivity() {
                     oneTapClient,
                     signInRequest,
                     signUpRequest,
-                    authViewModel,
+                    loginViewModel,
                     auth)
             }
         }
@@ -496,6 +497,7 @@ fun LoginScreen(
                     onClick = {
                         scope.launch {
                             loginViewModel.signIn(activity, oneTapClient, signInRequest, signUpRequest, launcher)
+                            loginViewModel.loginStatus(auth)
                         }
                     },
                     color = MaterialTheme.colorScheme.onPrimary,

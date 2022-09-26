@@ -42,7 +42,7 @@ class LoginViewModel @Inject constructor(
     var viewstate: StateFlow<UserState> = _viewstate
 
 
-    fun LogInStatus(firebaseAuth: FirebaseAuth?) {
+    fun loginStatus(firebaseAuth: FirebaseAuth?) {
         viewModelScope.launch {
             val loggedInStatus: Boolean = repositoryImpl.loggedInStatus(firebaseAuth)
 
