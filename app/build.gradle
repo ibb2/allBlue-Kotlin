@@ -133,4 +133,8 @@ dependencies {
 
     // optional - RxJava3 support
     implementation("androidx.datastore:datastore-preferences-rxjava3:$datastore")
+
+    // Google Play Billing dependencies
+    implementation("com.android.billingclient:billing:$play_billing_version")
+    implementation("com.android.billingclient:billing-ktx:$play_billing_version")
 }
