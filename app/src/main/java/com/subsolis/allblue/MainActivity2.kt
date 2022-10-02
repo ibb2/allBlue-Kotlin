@@ -163,20 +163,7 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
-            if (loginState.LoggedIn) {
-                Main(
-                    context,
-                    name,
-                    address,
-                    bluetoothViewModel::getPairedDevices,
-                    bluetoothState.pairedDevices,
-                    bluetoothViewModel::saveSelectedDevice,
-                    bluetoothViewModel::startMediaPlayingService,
-                    bluetoothViewModel::stopMediaPlayingService,
-                    bluetoothState.serviceActive,
-                    bluetoothViewModel::getServiceStatus,
-                ) {}
-            } else if (qonversionState.testing) {
+            if (qonversionState.testing) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -231,6 +218,19 @@ class MainActivity2 : ComponentActivity() {
                         )
                     }
                 }
+            } else if (loginState.LoggedIn) {
+                Main(
+                    context,
+                    name,
+                    address,
+                    bluetoothViewModel::getPairedDevices,
+                    bluetoothState.pairedDevices,
+                    bluetoothViewModel::saveSelectedDevice,
+                    bluetoothViewModel::startMediaPlayingService,
+                    bluetoothViewModel::stopMediaPlayingService,
+                    bluetoothState.serviceActive,
+                    bluetoothViewModel::getServiceStatus,
+                ) {}
             } else {
                 LoginScreen(
                     activity,
