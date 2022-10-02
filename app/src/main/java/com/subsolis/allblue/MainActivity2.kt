@@ -56,6 +56,7 @@ import com.qonversion.android.sdk.QonversionError
 import com.qonversion.android.sdk.QonversionPermissionsCallback
 import com.qonversion.android.sdk.dto.QPermission
 import com.subsolis.allblue.Login.LoginViewModel
+import com.subsolis.allblue.Login.UserState
 import com.subsolis.allblue.Qonversion.QonversionState
 import com.subsolis.allblue.Qonversion.QonversionViewModel
 import com.subsolis.compose.Material3AppTheme
@@ -163,83 +164,27 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
-            if (qonversionState.testing) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    if (qonversionState.hasAndroidPremiumPermission) {
-                        item {
-                            Text(
-                                text = "Yaay, you got premium access!",
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Green)
-                                    .padding(16.dp)
-                            )
-                        }
-                    }
-                    items(qonversionState.loadedOfferings) { offering ->
-                        Text(
-                            text = offering.offeringID,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    Qonversion.purchase(
-                                        this@MainActivity2,
-                                        offering.products.firstOrNull() ?: return@clickable,
-                                        object : QonversionPermissionsCallback {
-                                            override fun onError(error: QonversionError) {
-                                                Toast
-                                                    .makeText(
-                                                        this@MainActivity2,
-                                                        "Purchase failed: ${error.description}, ${error.additionalMessage}",
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                    .show()
-                                            }
-
-                                            override fun onSuccess(permissions: Map<String, QPermission>) {
-                                                Toast
-                                                    .makeText(
-                                                        this@MainActivity2,
-                                                        "Purchase successful",
-                                                        Toast.LENGTH_LONG
-                                                    )
-                                                    .show()
-                                                qonversionViewModel.updatePermissions()
-                                            }
-                                        }
-                                    )
-                                }
-                                .padding(16.dp)
-                        )
-                    }
-                }
-            } else if (loginState.LoggedIn) {
-                Main(
-                    context,
-                    name,
-                    address,
-                    bluetoothViewModel::getPairedDevices,
-                    bluetoothState.pairedDevices,
-                    bluetoothViewModel::saveSelectedDevice,
-                    bluetoothViewModel::startMediaPlayingService,
-                    bluetoothViewModel::stopMediaPlayingService,
-                    bluetoothState.serviceActive,
-                    bluetoothViewModel::getServiceStatus,
-                ) {}
-            } else {
-                LoginScreen(
-                    activity,
-                    oneTapClient,
-                    signInRequest,
-                    signUpRequest,
-                    loginViewModel,
-                    auth)
-            }
+            Main(
+                context,
+                activity,
+                name,
+                address,
+                bluetoothViewModel::getPairedDevices,
+                bluetoothState.pairedDevices,
+                bluetoothViewModel::saveSelectedDevice,
+                bluetoothViewModel::startMediaPlayingService,
+                bluetoothViewModel::stopMediaPlayingService,
+                bluetoothState.serviceActive,
+                bluetoothViewModel::getServiceStatus,
+                oneTapClient,
+                signInRequest,
+                signUpRequest,
+                auth,
+                loginViewModel,
+                loginState,
+                qonversionViewModel,
+                qonversionState,
+            )
         }
     }
 
@@ -253,6 +198,7 @@ class MainActivity2 : ComponentActivity() {
 @Composable
 fun Main(
     context: Context,
+    activity: Activity,
     name: String,
     address: String,
     getPairedDevices: (context: Context) -> Unit,
@@ -262,7 +208,107 @@ fun Main(
     stopService: (context: Context) -> Unit,
     serviceState: Boolean?,
     getServiceStatus: () -> Unit,
-    Content: @Composable () -> Unit,
+    oneTapClient: SignInClient,
+    signInRequest: BeginSignInRequest,
+    signUpRequest: BeginSignInRequest,
+    auth: FirebaseAuth,
+    loginViewModel: LoginViewModel,
+    loginState: UserState,
+    qonversionViewModel: QonversionViewModel,
+    qonversionState: QonversionState,
+) {
+    if (loginState.LoggedIn) {
+        LoginScreen(
+            activity,
+            oneTapClient,
+            signInRequest,
+            signUpRequest,
+            loginViewModel,
+            auth
+        )
+    } else if (!qonversionState.hasAndroidPremiumPermission) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            if (qonversionState.hasAndroidPremiumPermission) {
+                item {
+                    Text(
+                        text = "Yaay, you got premium access!",
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Green)
+                            .padding(16.dp)
+                    )
+                }
+            }
+            items(qonversionState.loadedOfferings) { offering ->
+                Text(
+                    text = offering.offeringID,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            Qonversion.purchase(
+                                activity,
+                                offering.products.firstOrNull() ?: return@clickable,
+                                object : QonversionPermissionsCallback {
+                                    override fun onError(error: QonversionError) {
+                                        Toast
+                                            .makeText(
+                                                activity,
+                                                "Purchase failed: ${error.description}, ${error.additionalMessage}",
+                                                Toast.LENGTH_LONG
+                                            )
+                                            .show()
+                                    }
+
+                                    override fun onSuccess(permissions: Map<String, QPermission>) {
+                                        Toast
+                                            .makeText(
+                                                activity,
+                                                "Purchase successful",
+                                                Toast.LENGTH_LONG
+                                            )
+                                            .show()
+                                        qonversionViewModel.updatePermissions()
+                                    }
+                                }
+                            )
+                        }
+                        .padding(16.dp)
+                )
+            }
+        }
+    } else {
+        MainBody(
+            context,
+            name,
+            address,
+            getPairedDevices,
+            PairedDevices,
+            saveSelectedDevice,
+            startService,
+            stopService,
+            serviceState,
+            getServiceStatus,
+        )
+    }
+}
+
+@Composable
+fun MainBody(
+    context: Context,
+    name: String,
+    address: String,
+    getPairedDevices: (context: Context) -> Unit,
+    PairedDevices: ArrayList<BluetoothDevice>,
+    saveSelectedDevice: (device: BluetoothDevice) -> Unit,
+    startService: (context: Context) -> Unit,
+    stopService: (context: Context) -> Unit,
+    serviceState: Boolean?,
+    getServiceStatus: () -> Unit,
 ) {
     Material3AppTheme {
 
@@ -271,7 +317,6 @@ fun Main(
             .fillMaxHeight()
             .fillMaxWidth())
         {
-            Content()
             Scaffold(Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(),
@@ -611,17 +656,50 @@ fun LoginScreen(
 fun DefaultPreview() {
 
     val context = LocalContext.current
+    val activity = LocalContext.current as Activity
+
+
+    val auth = Firebase.auth
+
+    // Google Onetap Sign in
+    val oneTapClient = Identity.getSignInClient(context)
+    val signInRequest = BeginSignInRequest.builder()
+        .setGoogleIdTokenRequestOptions(
+            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                .setSupported(true)
+                .setServerClientId(context.getString(R.string.firebase_client_id))
+                .setFilterByAuthorizedAccounts(true)
+                .build())
+        .setAutoSelectEnabled(true)
+        .build()
+    val signUpRequest = BeginSignInRequest.builder()
+        .setGoogleIdTokenRequestOptions(
+            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                .setSupported(true)
+                .setServerClientId(context.getString(R.string.firebase_client_id))
+                .setFilterByAuthorizedAccounts(false)
+                .build())
+        .build()
 
     Main(
         context,
-        name = UserDevice().name,
-        address = UserDevice().address,
+        activity,
+        name = String(),
+        address = String(),
         getPairedDevices = {},
-        PairedDevices = BluetoothState().pairedDevices,
+        PairedDevices = ArrayList(),
         saveSelectedDevice = {},
         startService = {},
         stopService = {},
-        serviceState = BluetoothState().serviceActive,
+        serviceState = true,
         getServiceStatus = {},
-    ) {}
+        oneTapClient = oneTapClient,
+        signInRequest = signInRequest,
+        signUpRequest = signUpRequest,
+        auth = auth,
+        loginViewModel = viewModel(),
+        loginState = UserState(),
+        qonversionViewModel = viewModel(),
+        qonversionState = QonversionState(),
+    )
 }

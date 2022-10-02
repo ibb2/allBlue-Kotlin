@@ -48,6 +48,11 @@ class BluetoothViewModel @Inject constructor(private val bluetoothRepository: Bl
 //            )
 //        }
 //    }
+
+    init {
+        getSelectedDevice()
+    }
+
     override fun onCleared() {
         super.onCleared()
         clearMediaPlayingService()
