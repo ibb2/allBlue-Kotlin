@@ -137,4 +137,7 @@ dependencies {
     // Google Play Billing dependencies
     implementation("com.android.billingclient:billing:$play_billing_version")
     implementation("com.android.billingclient:billing-ktx:$play_billing_version")
+
+    // Qonversion
+    implementation ("io.qonversion.android.sdk:sdk:3.+")
 }
