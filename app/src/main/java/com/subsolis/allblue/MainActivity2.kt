@@ -13,12 +13,14 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,9 +30,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,7 +51,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider.getCredential
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.qonversion.android.sdk.Qonversion
+import com.qonversion.android.sdk.QonversionError
+import com.qonversion.android.sdk.QonversionPermissionsCallback
+import com.qonversion.android.sdk.dto.QPermission
 import com.subsolis.allblue.Login.LoginViewModel
+import com.subsolis.allblue.Qonversion.QonversionState
+import com.subsolis.allblue.Qonversion.QonversionViewModel
 import com.subsolis.compose.Material3AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -96,6 +106,11 @@ class MainActivity2 : ComponentActivity() {
 
             val loginViewModel: LoginViewModel = viewModel()
             val loginState = loginViewModel.viewstate.collectAsState().value
+
+            // Qonversion state and viewmodel
+            val qonversionViewModel: QonversionViewModel = viewModel()
+            val qonversionState: QonversionState =
+                qonversionViewModel.viewState.collectAsState().value
 
             loginViewModel.loginStatus(auth)
 
@@ -161,6 +176,61 @@ class MainActivity2 : ComponentActivity() {
                     bluetoothState.serviceActive,
                     bluetoothViewModel::getServiceStatus,
                 ) {}
+            } else if (qonversionState.testing) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    if (qonversionState.hasAndroidPremiumPermission) {
+                        item {
+                            Text(
+                                text = "Yaay, you got premium access!",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.Green)
+                                    .padding(16.dp)
+                            )
+                        }
+                    }
+                    items(qonversionState.loadedOfferings) { offering ->
+                        Text(
+                            text = offering.offeringID,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    Qonversion.purchase(
+                                        this@MainActivity2,
+                                        offering.products.firstOrNull() ?: return@clickable,
+                                        object : QonversionPermissionsCallback {
+                                            override fun onError(error: QonversionError) {
+                                                Toast
+                                                    .makeText(
+                                                        this@MainActivity2,
+                                                        "Purchase failed: ${error.description}, ${error.additionalMessage}",
+                                                        Toast.LENGTH_LONG
+                                                    )
+                                                    .show()
+                                            }
+
+                                            override fun onSuccess(permissions: Map<String, QPermission>) {
+                                                Toast
+                                                    .makeText(
+                                                        this@MainActivity2,
+                                                        "Purchase successful",
+                                                        Toast.LENGTH_LONG
+                                                    )
+                                                    .show()
+                                                qonversionViewModel.updatePermissions()
+                                            }
+                                        }
+                                    )
+                                }
+                                .padding(16.dp)
+                        )
+                    }
+                }
             } else {
                 LoginScreen(
                     activity,
@@ -496,14 +566,19 @@ fun LoginScreen(
                 Surface(
                     onClick = {
                         scope.launch {
-                            loginViewModel.signIn(activity, oneTapClient, signInRequest, signUpRequest, launcher)
+                            loginViewModel.signIn(activity,
+                                oneTapClient,
+                                signInRequest,
+                                signUpRequest,
+                                launcher)
                             loginViewModel.loginStatus(auth)
                         }
                     },
                     color = MaterialTheme.colorScheme.onPrimary,
                     shadowElevation = 0.dp,
                     shape = RoundedCornerShape(5.dp),
-                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primaryContainer),
+                    border = BorderStroke(width = 1.dp,
+                        color = MaterialTheme.colorScheme.primaryContainer),
                 ) {
                     Row(
                         modifier = Modifier

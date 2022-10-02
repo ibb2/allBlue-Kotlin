@@ -10,21 +10,23 @@ import com.qonversion.android.sdk.dto.QPermission
 import com.qonversion.android.sdk.dto.offerings.QOffering
 import com.qonversion.android.sdk.dto.offerings.QOfferings
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 data class QonversionState(
     val loadedOfferings: List<QOffering> = emptyList(),
     val hasAndroidPremiumPermission: Boolean = false,
+    val testing: Boolean = true,
 )
 
 class QonversionViewModel : ViewModel() {
 
-    private val _viewstate = MutableStateFlow(QonversionState())
-    var viewstate = _viewstate
+    private val _viewState = MutableStateFlow(QonversionState())
+    var viewState: StateFlow<QonversionState> = _viewState
 
     init {
         loadOfferings()
-        updatePremissions()
+        updatePermissions()
     }
 
     fun loadOfferings() {
@@ -35,7 +37,7 @@ class QonversionViewModel : ViewModel() {
                 }
 
                 override fun onSuccess(offerings: QOfferings) {
-                    _viewstate.value = _viewstate.value.copy(
+                    _viewState.value = _viewState.value.copy(
                         loadedOfferings = offerings.availableOfferings
                     )
                 }
@@ -43,7 +45,7 @@ class QonversionViewModel : ViewModel() {
         }
     }
 
-    fun updatePremissions() {
+    fun updatePermissions() {
         // Checks and updates permissions
 
         viewModelScope.launch {
@@ -54,7 +56,7 @@ class QonversionViewModel : ViewModel() {
                 }
 
                 override fun onSuccess(permissions: Map<String, QPermission>) {
-                    _viewstate.value = _viewstate.value.copy(
+                    _viewState.value = _viewState.value.copy(
                         hasAndroidPremiumPermission = permissions["Android-App-Premium"]?.isActive() == true
                     )
                 }
