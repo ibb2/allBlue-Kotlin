@@ -29,8 +29,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -226,7 +229,7 @@ fun Main(
             loginViewModel,
             auth
         )
-    } else if (!qonversionState.hasAndroidPremiumPermission) {
+    } else if (!qonversionState.testing) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -297,6 +300,7 @@ fun Main(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainBody(
     context: Context,
@@ -328,7 +332,18 @@ fun MainBody(
                                 mutableStateOf(false)
                             }
 
-                            IconButton(onClick = { menuStatus = !menuStatus }) {
+                            var openDialog by remember {
+                                mutableStateOf(false)
+                            }
+
+                            var expanded by remember {
+                                mutableStateOf(false)
+                            }
+
+                            IconButton(onClick = {
+                                menuStatus = !menuStatus
+                                openDialog = !openDialog
+                                expanded = !expanded }) {
                                 if (menuStatus) {
                                     Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
                                         contentDescription = "General settings opened")
@@ -336,6 +351,42 @@ fun MainBody(
                                     Icon(painter = painterResource(id = R.drawable.round_menu_24),
                                         contentDescription = "General settings")
                                 }
+                            }
+
+                            if (openDialog) {
+                                AlertDialog(
+                                    onDismissRequest = {
+                                        menuStatus = !menuStatus
+                                        openDialog = !openDialog
+                                        expanded = !expanded
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    confirmButton = { null },
+                                    text = {
+                                        Column() {
+                                            Row() {
+                                                Text(text = "Account Management")
+                                            }
+                                            Spacer(modifier = Modifier.padding(16.dp))
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.baseline_logout_24),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .padding(end = 8.dp)
+                                                )
+                                                Text(text = "Sign out", )
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .customDialogModifier(CustomDialogPosition.TOP)
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    properties = DialogProperties(
+                                        usePlatformDefaultWidth = false
+                                    )
+                                )
                             }
                         }
                     )
@@ -365,6 +416,26 @@ fun MainBody(
         }
     }
 }
+
+enum class CustomDialogPosition {
+    BOTTOM, TOP
+}
+
+fun Modifier.customDialogModifier(pos: CustomDialogPosition) = layout { measurable, constraints ->
+
+    val placeable = measurable.measure(constraints);
+    layout(constraints.maxWidth, constraints.maxHeight) {
+        when (pos) {
+            CustomDialogPosition.BOTTOM -> {
+                placeable.place(0, constraints.maxHeight - placeable.height, 10f)
+            }
+            CustomDialogPosition.TOP -> {
+                placeable.place(0, 120, 10f)
+            }
+        }
+    }
+}
+
 
 @Composable
 fun Section1(
