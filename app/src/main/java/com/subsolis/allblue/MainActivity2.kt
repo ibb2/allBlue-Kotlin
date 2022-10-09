@@ -42,7 +42,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -220,6 +219,7 @@ fun Main(
     qonversionViewModel: QonversionViewModel,
     qonversionState: QonversionState,
 ) {
+
     if (loginState.LoggedIn) {
         LoginScreen(
             activity,
@@ -314,105 +314,113 @@ fun MainBody(
     serviceState: Boolean?,
     getServiceStatus: () -> Unit,
 ) {
-    Material3AppTheme {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-        // A surface container using the 'background' color from the theme
-        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth())
-        {
-            Scaffold(Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(),
-                topBar = {
-                    CenterAlignedTopAppBar(
-                        title = { Text(text = "allBlue") },
-                        navigationIcon = {
-                            var menuStatus by remember {
-                                mutableStateOf(false)
-                            }
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxSize().padding(vertical = 32.dp)
+                ) {
+                    Text(text = "Menu", fontSize = 32.sp, modifier = Modifier.padding(start = 30.dp))
 
-                            var openDialog by remember {
-                                mutableStateOf(false)
-                            }
 
-                            var expanded by remember {
-                                mutableStateOf(false)
-                            }
+                    Column() {
+                        Text(text = "Account Management",
+                            modifier = Modifier.padding(start = 30.dp, top = 32.dp, end = 32.dp))
+                        Spacer(Modifier.height(12.dp))
 
-                            IconButton(onClick = {
-                                menuStatus = !menuStatus
-                                openDialog = !openDialog
-                                expanded = !expanded }) {
-                                if (menuStatus) {
-                                    Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
-                                        contentDescription = "General settings opened")
-                                } else {
-                                    Icon(painter = painterResource(id = R.drawable.round_menu_24),
-                                        contentDescription = "General settings")
+                        NavigationDrawerItem(
+                            icon = {
+                                Icon(painter = painterResource(id = R.drawable.baseline_logout_24),
+                                    contentDescription = "")
+                            },
+                            label = { Text("Sign out") },
+                            selected = false,
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
                                 }
-                            }
 
-                            if (openDialog) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        menuStatus = !menuStatus
-                                        openDialog = !openDialog
-                                        expanded = !expanded
-                                    },
-                                    shape = RoundedCornerShape(10.dp),
-                                    confirmButton = { null },
-                                    text = {
-                                        Column() {
-                                            Row() {
-                                                Text(text = "Account Management")
-                                            }
-                                            Spacer(modifier = Modifier.padding(16.dp))
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    painter = painterResource(id = R.drawable.baseline_logout_24),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .padding(end = 8.dp)
-                                                )
-                                                Text(text = "Sign out", )
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .customDialogModifier(CustomDialogPosition.TOP)
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    properties = DialogProperties(
-                                        usePlatformDefaultWidth = false
-                                    )
-                                )
-                            }
-                        }
-                    )
-                },
-                content = { contentPadding ->
-                    Column(modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                    ) {
-                        Section1(name, address, contentPadding)
-                        Spacer(modifier = Modifier.padding(20.dp))
-                        Section2(
-                            getPairedDevices,
-                            PairedDevices,
-                            saveSelectedDevice,
-                            context)
-                        FAB(startService,
-                            stopService,
-                            serviceState,
-                            getServiceStatus,
-                            context,
-                            contentPadding)
+                            },
+                            modifier = Modifier.padding(
+                                NavigationDrawerItemDefaults.ItemPadding)
+                        )
                     }
                 }
-            )
+            }
+        },
+        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Material3AppTheme {
+
+            // A surface container using the 'background' color from the theme
+            Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth())
+            {
+                Scaffold(Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
+                    topBar = {
+                        CenterAlignedTopAppBar(
+                            title = { Text(text = "allBlue") },
+                            navigationIcon = {
+                                var menuStatus by remember {
+                                    mutableStateOf(false)
+                                }
+
+                                if (drawerState.isClosed) {
+                                    menuStatus = false
+                                }
+
+                                IconButton(onClick = {
+                                    if (drawerState.isClosed){
+                                        menuStatus = true
+                                        scope.launch { drawerState.open() }
+                                    } else {
+                                        menuStatus = false
+                                        scope.launch { drawerState.close() }
+                                    }
+                                }
+                                ) {
+                                    if (menuStatus) {
+                                        Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
+                                            contentDescription = "General settings opened")
+                                    } else {
+                                        Icon(painter = painterResource(id = R.drawable.round_menu_24),
+                                            contentDescription = "General settings")
+                                    }
+                                }
+                            }
+                        )
+                    },
+                    content = { contentPadding ->
+                        Column(modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                        ) {
+                            Section1(name, address, contentPadding)
+                            Spacer(modifier = Modifier.padding(20.dp))
+                            Section2(
+                                getPairedDevices,
+                                PairedDevices,
+                                saveSelectedDevice,
+                                context)
+                            FAB(startService,
+                                stopService,
+                                serviceState,
+                                getServiceStatus,
+                                context,
+                                contentPadding)
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -435,7 +443,6 @@ fun Modifier.customDialogModifier(pos: CustomDialogPosition) = layout { measurab
         }
     }
 }
-
 
 @Composable
 fun Section1(
