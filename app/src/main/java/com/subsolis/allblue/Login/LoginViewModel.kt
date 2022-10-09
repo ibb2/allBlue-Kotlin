@@ -14,6 +14,7 @@ import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.qonversion.android.sdk.Qonversion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +52,10 @@ class LoginViewModel @Inject constructor(
                 LoggedIn = loggedInStatus
             )
         }
+    }
+    
+    fun qonversionSignin(auth: FirebaseAuth) {
+        Qonversion.identify(auth.currentUser!!.uid)
     }
 
     fun signIn(
@@ -97,6 +102,7 @@ class LoginViewModel @Inject constructor(
             auth.signOut()
             val currentLoginStatus = repositoryImpl.loggedInStatus(auth)
             oneTapClient.signOut().await()
+            Qonversion.logout()
 
             _viewstate.value = _viewstate.value.copy(
                 LoggedIn = currentLoginStatus

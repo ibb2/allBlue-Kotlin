@@ -240,7 +240,7 @@ fun Main(
             loginViewModel,
             auth
         )
-    } else if (!activeSubscription) {
+    } else if (activeSubscription) {
         SubscriptionUi(
             activity,
             activeSubscription,
@@ -718,6 +718,7 @@ fun LoginScreen(
                                     // Sign in success, update UI with the signed-in user's information
                                     Log.d(TAG_FIREBASE, "signInWithCredential:success")
                                     loginViewModel.loginStatus(auth)
+                                    loginViewModel.qonversionSignin(auth)
                                     val user = auth.currentUser
                                     //                                updateUI(user)
                                 } else {
