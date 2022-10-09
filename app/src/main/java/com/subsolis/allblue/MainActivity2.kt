@@ -31,12 +31,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -266,7 +264,7 @@ fun Main(
             loginViewModel,
             loginState,
 
-        )
+            )
     }
 }
 
@@ -275,63 +273,91 @@ fun SubscriptionUi(
     activity: Activity,
     activeSubscription: Boolean,
     loadedOfferings: List<QOffering>,
-    qonversionViewModel: QonversionViewModel
+    qonversionViewModel: QonversionViewModel,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (!activeSubscription) {
-            item {
-                Text(
-                    text = "Yaay, you got premium access!",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Green)
-                        .padding(16.dp)
-                )
-            }
-        }
-        items(loadedOfferings) { offering ->
-            Text(
-                text = offering.offeringID,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        Qonversion.purchase(
-                            activity,
-                            offering.products.firstOrNull() ?: return@clickable,
-                            object : QonversionPermissionsCallback {
-                                override fun onError(error: QonversionError) {
-                                    Toast
-                                        .makeText(
-                                            activity,
-                                            "Purchase failed: ${error.description}, ${error.additionalMessage}",
-                                            Toast.LENGTH_LONG
-                                        )
-                                        .show()
-                                }
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = "allBlue") },
+            )
+        },
+        modifier = Modifier.fillMaxSize(),
+        content = { padding ->
+            Column(verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.padding(padding))
+                Card(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(text = "Subscribe to allBlue", fontSize = 24.sp)
 
-                                override fun onSuccess(permissions: Map<String, QPermission>) {
-                                    Toast
-                                        .makeText(
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = "2 Week free trail, no commitment.")
+                        Text(text = "Get access to the service provided by the allBlue application.")
+                    }
+                }
+                Divider(modifier = Modifier.padding(start = 16.dp,
+                    top = 32.dp,
+                    end = 16.dp,
+                    bottom = 16.dp))
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    items(loadedOfferings) { offering ->
+                        Card(
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
+                                    .clickable
+                                    {
+                                        Qonversion.purchase(
                                             activity,
-                                            "Purchase successful",
-                                            Toast.LENGTH_LONG
+                                            offering.products.firstOrNull() ?: return@clickable,
+                                            object : QonversionPermissionsCallback {
+                                                override fun onError(error: QonversionError) {
+                                                    Toast
+                                                        .makeText(
+                                                            activity,
+                                                            "Purchase failed: ${error.description}, ${error.additionalMessage}",
+                                                            Toast.LENGTH_LONG
+                                                        )
+                                                        .show()
+                                                }
+
+                                                override fun onSuccess(permissions: Map<String, QPermission>) {
+                                                    Toast
+                                                        .makeText(
+                                                            activity,
+                                                            "Purchase successful",
+                                                            Toast.LENGTH_LONG
+                                                        )
+                                                        .show()
+                                                    qonversionViewModel.updatePermissions()
+                                                }
+                                            }
                                         )
-                                        .show()
-                                    qonversionViewModel.updatePermissions()
+                                    }
+                                    .padding(16.dp)
+                            ) {
+                                Column() {
+                                    Text(text = "Yearly Plan", fontSize = 18.sp)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = "$10/year, after free trail")
                                 }
                             }
-                        )
+                        }
                     }
-                    .padding(16.dp)
-            )
-        }
-    }
+                }
+            }
 
+        }
+    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -365,7 +391,9 @@ fun MainBody(
                         .fillMaxSize()
                         .padding(vertical = 32.dp)
                 ) {
-                    Text(text = "Menu", fontSize = 32.sp, modifier = Modifier.padding(start = 30.dp))
+                    Text(text = "Menu",
+                        fontSize = 32.sp,
+                        modifier = Modifier.padding(start = 30.dp))
 
 
                     Column() {
@@ -418,7 +446,7 @@ fun MainBody(
                                 }
 
                                 IconButton(onClick = {
-                                    if (drawerState.isClosed){
+                                    if (drawerState.isClosed) {
                                         menuStatus = true
                                         scope.launch { drawerState.open() }
                                     } else {
