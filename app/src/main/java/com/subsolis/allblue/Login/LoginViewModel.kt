@@ -94,7 +94,14 @@ class LoginViewModel @Inject constructor(
     fun signOut(auth: FirebaseAuth, oneTapClient: SignInClient) {
         viewModelScope.launch{
             auth.signOut()
+            val currentLoginStatus = repositoryImpl.loggedInStatus(auth)
             oneTapClient.signOut().await()
+
+            _viewstate.value = _viewstate.value.copy(
+                LoggedIn = currentLoginStatus
+            )
+
+            Log.d("Sign Out", "Log in status: $currentLoginStatus")
         }
     }
 }

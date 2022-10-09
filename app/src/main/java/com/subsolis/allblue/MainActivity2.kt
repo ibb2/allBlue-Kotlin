@@ -166,6 +166,9 @@ class MainActivity2 : ComponentActivity() {
                 bluetoothViewModel.createNotificationChannel(context)
             })
 
+            val loginStatus = loginState.LoggedIn
+            val activeSubscription = qonversionState.hasAndroidPremiumPermission
+
             Main(
                 context,
                 activity,
@@ -186,6 +189,8 @@ class MainActivity2 : ComponentActivity() {
                 loginState,
                 qonversionViewModel,
                 qonversionState,
+                loginStatus,
+                activeSubscription
             )
         }
     }
@@ -218,9 +223,11 @@ fun Main(
     loginState: UserState,
     qonversionViewModel: QonversionViewModel,
     qonversionState: QonversionState,
+    loginStatus: Boolean,
+    activeSubscription: Boolean,
 ) {
 
-    if (loginState.LoggedIn) {
+    if (!loginStatus) {
         LoginScreen(
             activity,
             oneTapClient,
@@ -229,7 +236,7 @@ fun Main(
             loginViewModel,
             auth
         )
-    } else if (!qonversionState.testing) {
+    } else if (!activeSubscription) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -332,7 +339,9 @@ fun MainBody(
             ModalDrawerSheet {
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize().padding(vertical = 32.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 32.dp)
                 ) {
                     Text(text = "Menu", fontSize = 32.sp, modifier = Modifier.padding(start = 30.dp))
 
@@ -354,7 +363,6 @@ fun MainBody(
                                     drawerState.close()
                                     loginViewModel.signOut(auth, oneTapClient)
                                 }
-
                             },
                             modifier = Modifier.padding(
                                 NavigationDrawerItemDefaults.ItemPadding)
@@ -789,5 +797,7 @@ fun DefaultPreview() {
         loginState = UserState(),
         qonversionViewModel = viewModel(),
         qonversionState = QonversionState(),
+        loginStatus = false,
+        activeSubscription = false,
     )
 }
