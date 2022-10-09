@@ -57,6 +57,7 @@ import com.qonversion.android.sdk.Qonversion
 import com.qonversion.android.sdk.QonversionError
 import com.qonversion.android.sdk.QonversionPermissionsCallback
 import com.qonversion.android.sdk.dto.QPermission
+import com.qonversion.android.sdk.dto.offerings.QOffering
 import com.subsolis.allblue.Login.LoginViewModel
 import com.subsolis.allblue.Login.UserState
 import com.subsolis.allblue.Qonversion.QonversionState
@@ -167,7 +168,10 @@ class MainActivity2 : ComponentActivity() {
             })
 
             val loginStatus = loginState.LoggedIn
+
+            // Qonversion state and viewmodel
             val activeSubscription = qonversionState.hasAndroidPremiumPermission
+            val loadedOfferings = qonversionState.loadedOfferings
 
             Main(
                 context,
@@ -190,7 +194,8 @@ class MainActivity2 : ComponentActivity() {
                 qonversionViewModel,
                 qonversionState,
                 loginStatus,
-                activeSubscription
+                activeSubscription,
+                loadedOfferings
             )
         }
     }
@@ -225,6 +230,7 @@ fun Main(
     qonversionState: QonversionState,
     loginStatus: Boolean,
     activeSubscription: Boolean,
+    loadedOfferings: List<QOffering>,
 ) {
 
     if (!loginStatus) {
@@ -237,60 +243,12 @@ fun Main(
             auth
         )
     } else if (!activeSubscription) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            if (qonversionState.hasAndroidPremiumPermission) {
-                item {
-                    Text(
-                        text = "Yaay, you got premium access!",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.Green)
-                            .padding(16.dp)
-                    )
-                }
-            }
-            items(qonversionState.loadedOfferings) { offering ->
-                Text(
-                    text = offering.offeringID,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            Qonversion.purchase(
-                                activity,
-                                offering.products.firstOrNull() ?: return@clickable,
-                                object : QonversionPermissionsCallback {
-                                    override fun onError(error: QonversionError) {
-                                        Toast
-                                            .makeText(
-                                                activity,
-                                                "Purchase failed: ${error.description}, ${error.additionalMessage}",
-                                                Toast.LENGTH_LONG
-                                            )
-                                            .show()
-                                    }
-
-                                    override fun onSuccess(permissions: Map<String, QPermission>) {
-                                        Toast
-                                            .makeText(
-                                                activity,
-                                                "Purchase successful",
-                                                Toast.LENGTH_LONG
-                                            )
-                                            .show()
-                                        qonversionViewModel.updatePermissions()
-                                    }
-                                }
-                            )
-                        }
-                        .padding(16.dp)
-                )
-            }
-        }
+        SubscriptionUi(
+            activity,
+            activeSubscription,
+            loadedOfferings,
+            qonversionViewModel
+        )
     } else {
         MainBody(
             context,
@@ -310,6 +268,70 @@ fun Main(
 
         )
     }
+}
+
+@Composable
+fun SubscriptionUi(
+    activity: Activity,
+    activeSubscription: Boolean,
+    loadedOfferings: List<QOffering>,
+    qonversionViewModel: QonversionViewModel
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        if (!activeSubscription) {
+            item {
+                Text(
+                    text = "Yaay, you got premium access!",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Green)
+                        .padding(16.dp)
+                )
+            }
+        }
+        items(loadedOfferings) { offering ->
+            Text(
+                text = offering.offeringID,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        Qonversion.purchase(
+                            activity,
+                            offering.products.firstOrNull() ?: return@clickable,
+                            object : QonversionPermissionsCallback {
+                                override fun onError(error: QonversionError) {
+                                    Toast
+                                        .makeText(
+                                            activity,
+                                            "Purchase failed: ${error.description}, ${error.additionalMessage}",
+                                            Toast.LENGTH_LONG
+                                        )
+                                        .show()
+                                }
+
+                                override fun onSuccess(permissions: Map<String, QPermission>) {
+                                    Toast
+                                        .makeText(
+                                            activity,
+                                            "Purchase successful",
+                                            Toast.LENGTH_LONG
+                                        )
+                                        .show()
+                                    qonversionViewModel.updatePermissions()
+                                }
+                            }
+                        )
+                    }
+                    .padding(16.dp)
+            )
+        }
+    }
+
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -667,6 +689,7 @@ fun LoginScreen(
                                 if (task.isSuccessful) {
                                     // Sign in success, update UI with the signed-in user's information
                                     Log.d(TAG_FIREBASE, "signInWithCredential:success")
+                                    loginViewModel.loginStatus(auth)
                                     val user = auth.currentUser
                                     //                                updateUI(user)
                                 } else {
@@ -707,7 +730,9 @@ fun LoginScreen(
                 Surface(
                     onClick = {
                         scope.launch {
-                            loginViewModel.signIn(activity,
+                            loginViewModel.signIn(
+                                activity,
+                                auth,
                                 oneTapClient,
                                 signInRequest,
                                 signUpRequest,
@@ -799,5 +824,6 @@ fun DefaultPreview() {
         qonversionState = QonversionState(),
         loginStatus = false,
         activeSubscription = false,
+        loadedOfferings = emptyList(),
     )
 }

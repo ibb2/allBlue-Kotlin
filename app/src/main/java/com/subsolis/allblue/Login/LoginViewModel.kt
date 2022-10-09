@@ -55,6 +55,7 @@ class LoginViewModel @Inject constructor(
 
     fun signIn(
         activity: Activity,
+        auth: FirebaseAuth,
         oneTapClient: SignInClient,
         signInRequest: BeginSignInRequest,
         signUpRequest: BeginSignInRequest,
