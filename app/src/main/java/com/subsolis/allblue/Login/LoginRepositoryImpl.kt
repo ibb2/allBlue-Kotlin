@@ -13,18 +13,18 @@ class LoginRepositoryImpl @Inject constructor(private val dataStore: DataStore<P
 
     override suspend fun loggedInStatus(auth: FirebaseAuth?): Boolean {
 
-        if (auth?.currentUser != null) {
+        return if (auth?.currentUser != null) {
             dataStore.edit { settings ->
                 settings[LOGGED_IN] = true
             }
 
-            return true
+            true
         } else {
             dataStore.edit { settings ->
                 settings[LOGGED_IN] = false
             }
 
-            return false
+            false
         }
     }
 }

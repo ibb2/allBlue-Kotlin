@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 val viewModelAuth = Firebase.auth
@@ -60,7 +61,6 @@ class LoginViewModel @Inject constructor(
         launcher: ActivityResultLauncher<IntentSenderRequest>,
     ) {
 
-
         oneTapClient.beginSignIn(signInRequest)
             .addOnSuccessListener(activity) { result ->
                 try {
@@ -89,5 +89,12 @@ class LoginViewModel @Inject constructor(
                         e.localizedMessage?.let { Log.d(TAG_SIGNUP, "$it: even less non functional") }
                     }
             }
+    }
+
+    fun signOut(auth: FirebaseAuth, oneTapClient: SignInClient) {
+        viewModelScope.launch{
+            auth.signOut()
+            oneTapClient.signOut().await()
+        }
     }
 }

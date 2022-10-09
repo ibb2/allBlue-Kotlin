@@ -287,6 +287,7 @@ fun Main(
     } else {
         MainBody(
             context,
+            auth,
             name,
             address,
             getPairedDevices,
@@ -296,6 +297,10 @@ fun Main(
             stopService,
             serviceState,
             getServiceStatus,
+            oneTapClient,
+            loginViewModel,
+            loginState,
+
         )
     }
 }
@@ -304,6 +309,7 @@ fun Main(
 @Composable
 fun MainBody(
     context: Context,
+    auth: FirebaseAuth,
     name: String,
     address: String,
     getPairedDevices: (context: Context) -> Unit,
@@ -313,6 +319,9 @@ fun MainBody(
     stopService: (context: Context) -> Unit,
     serviceState: Boolean?,
     getServiceStatus: () -> Unit,
+    oneTapClient: SignInClient,
+    loginViewModel: LoginViewModel,
+    loginState: UserState,
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -343,6 +352,7 @@ fun MainBody(
                             onClick = {
                                 scope.launch {
                                     drawerState.close()
+                                    loginViewModel.signOut(auth, oneTapClient)
                                 }
 
                             },
