@@ -56,9 +56,16 @@ class QonversionViewModel : ViewModel() {
                 }
 
                 override fun onSuccess(permissions: Map<String, QPermission>) {
-                    _viewState.value = _viewState.value.copy(
-                        hasAndroidPremiumPermission = permissions["Android-App-Premium"]?.isActive() == true
-                    )
+                    val premiumPermission = permissions["Android-App-Premium"]
+                    if (premiumPermission != null && premiumPermission.isActive()) {
+                        _viewState.value = _viewState.value.copy(
+                            hasAndroidPremiumPermission = true
+                        )
+                    } else {
+                        _viewState.value = _viewState.value.copy(
+                            hasAndroidPremiumPermission = false
+                        )
+                    }
                 }
             })
         }

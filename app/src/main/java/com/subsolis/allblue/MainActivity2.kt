@@ -240,12 +240,12 @@ fun Main(
             loginViewModel,
             auth
         )
-    } else if (activeSubscription) {
+    } else if (!activeSubscription) {
         SubscriptionUi(
             activity,
             activeSubscription,
             loadedOfferings,
-            qonversionViewModel
+            qonversionViewModel,
         )
     } else {
         MainBody(
