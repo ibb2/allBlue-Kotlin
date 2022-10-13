@@ -140,4 +140,8 @@ dependencies {
 
     // Qonversion
     implementation ("io.qonversion.android.sdk:sdk:3.+")
+
+    // Adapty.io
+    implementation 'com.github.adaptyteam:AdaptySDK-Android:1.11.0'
+
 }
