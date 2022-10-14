@@ -13,7 +13,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -42,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.adapty.models.PaywallModel
+import com.adapty.models.ProductModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
@@ -51,15 +52,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider.getCredential
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.qonversion.android.sdk.Qonversion
-import com.qonversion.android.sdk.QonversionError
-import com.qonversion.android.sdk.QonversionPermissionsCallback
-import com.qonversion.android.sdk.dto.QPermission
-import com.qonversion.android.sdk.dto.offerings.QOffering
+import com.subsolis.allblue.Adapty.AdaptyViewModel
 import com.subsolis.allblue.Login.LoginViewModel
 import com.subsolis.allblue.Login.UserState
-import com.subsolis.allblue.Qonversion.QonversionState
-import com.subsolis.allblue.Qonversion.QonversionViewModel
 import com.subsolis.compose.Material3AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -109,11 +104,6 @@ class MainActivity2 : ComponentActivity() {
             val loginViewModel: LoginViewModel = viewModel()
             val loginState = loginViewModel.viewstate.collectAsState().value
 
-            // Qonversion state and viewmodel
-            val qonversionViewModel: QonversionViewModel = viewModel()
-            val qonversionState: QonversionState =
-                qonversionViewModel.viewState.collectAsState().value
-
             loginViewModel.loginStatus(auth)
 
             // Instantiate a model even if blank, of selected bluetooth device
@@ -126,31 +116,20 @@ class MainActivity2 : ComponentActivity() {
             // Google Onetap Sign in
             oneTapClient = Identity.getSignInClient(context)
             signInRequest = BeginSignInRequest.builder()
-                .setGoogleIdTokenRequestOptions(
-                    BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                        .setSupported(true)
-                        .setServerClientId(getString(R.string.firebase_client_id))
-                        .setFilterByAuthorizedAccounts(true)
-                        .build())
-                .setAutoSelectEnabled(true)
-                .build()
+                .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true).setServerClientId(getString(R.string.firebase_client_id))
+                    .setFilterByAuthorizedAccounts(true).build()).setAutoSelectEnabled(true).build()
             signUpRequest = BeginSignInRequest.builder()
-                .setGoogleIdTokenRequestOptions(
-                    BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                        .setSupported(true)
-                        .setServerClientId(getString(R.string.firebase_client_id))
-                        .setFilterByAuthorizedAccounts(false)
-                        .build())
-                .build()
+                .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true).setServerClientId(getString(R.string.firebase_client_id))
+                    .setFilterByAuthorizedAccounts(false).build()).build()
 
             // Firebase Auth
 
             // Runtime
             val multipleBluetoothPermissionState =
-                rememberMultiplePermissionsState(listOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT)
-                )
+                rememberMultiplePermissionsState(listOf(Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT))
 
             if (!multipleBluetoothPermissionState.allPermissionsGranted) {
                 SideEffect {
@@ -167,9 +146,11 @@ class MainActivity2 : ComponentActivity() {
 
             val loginStatus = loginState.LoggedIn
 
-            // Qonversion state and viewmodel
-            val activeSubscription = qonversionState.hasAndroidPremiumPermission
-            val loadedOfferings = qonversionState.loadedOfferings
+            // Adapty.io ViewModel and States
+            val adaptyViewModel: AdaptyViewModel = viewModel()
+            val premiumAccess = adaptyViewModel.viewState.value.premiumAccessLevel
+            val paywalls: PaywallModel? = adaptyViewModel.viewState.value.paywalls
+            val products: List<ProductModel> = adaptyViewModel.viewState.value.products
 
             Main(
                 context,
@@ -189,11 +170,11 @@ class MainActivity2 : ComponentActivity() {
                 auth,
                 loginViewModel,
                 loginState,
-                qonversionViewModel,
-                qonversionState,
                 loginStatus,
-                activeSubscription,
-                loadedOfferings
+                // Adapty.io
+                premiumAccess,
+                paywalls,
+                products,
             )
         }
     }
@@ -224,29 +205,16 @@ fun Main(
     auth: FirebaseAuth,
     loginViewModel: LoginViewModel,
     loginState: UserState,
-    qonversionViewModel: QonversionViewModel,
-    qonversionState: QonversionState,
     loginStatus: Boolean,
-    activeSubscription: Boolean,
-    loadedOfferings: List<QOffering>,
+    premiumAccess: Boolean,
+    paywalls: PaywallModel?,
+    products: List<ProductModel>,
 ) {
 
-    if (!loginStatus) {
-        LoginScreen(
-            activity,
-            oneTapClient,
-            signInRequest,
-            signUpRequest,
-            loginViewModel,
-            auth
-        )
-    } else if (!activeSubscription) {
-        SubscriptionUi(
-            activity,
-            activeSubscription,
-            loadedOfferings,
-            qonversionViewModel,
-        )
+    if (loginStatus) {
+        LoginScreen(activity, oneTapClient, signInRequest, signUpRequest, loginViewModel, auth)
+    } else if (!premiumAccess) {
+        SubscriptionUi(activity = activity, premiumAccess, paywalls, products)
     } else {
         MainBody(
             context,
@@ -263,101 +231,65 @@ fun Main(
             oneTapClient,
             loginViewModel,
             loginState,
-
-            )
+        )
     }
 }
 
 @Composable
 fun SubscriptionUi(
     activity: Activity,
-    activeSubscription: Boolean,
-    loadedOfferings: List<QOffering>,
-    qonversionViewModel: QonversionViewModel,
+    premiumAccess: Boolean,
+    paywalls: PaywallModel?,
+    products: List<ProductModel>,
 ) {
+
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(text = "allBlue") },
-            )
-        },
-        modifier = Modifier.fillMaxSize(),
-        content = { padding ->
+        modifier = Modifier.fillMaxSize(), content = { padding ->
             Column(verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.padding(padding))
-                Card(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(text = "Subscribe to allBlue", fontSize = 24.sp)
-
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = "2 Week free trail, no commitment.")
-                        Text(text = "Get access to the service provided by the allBlue application.")
-                    }
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()) {
+                Spacer(modifier = Modifier
+                    .padding(padding)
+                    .fillMaxHeight(0.2f))
+                Column(modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "allBlue Premium Access",
+                        fontSize = 28.sp,
+                        textAlign = TextAlign.Center)
+                    Text(text = "Get access to the service provided by the allBlue.",
+                        textAlign = TextAlign.Center)
+                    Text(text = "${products.firstOrNull()?.localizedFreeTrialPeriod} trial, no commitment.",
+                        textAlign = TextAlign.Center)
+                    Text(text = "Cancel whenever.", textAlign = TextAlign.Center)
                 }
-                Divider(modifier = Modifier.padding(start = 16.dp,
-                    top = 32.dp,
-                    end = 16.dp,
-                    bottom = 16.dp))
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    items(loadedOfferings) { offering ->
-                        Card(
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                                    .clickable
-                                    {
-                                        Qonversion.purchase(
-                                            activity,
-                                            offering.products.firstOrNull() ?: return@clickable,
-                                            object : QonversionPermissionsCallback {
-                                                override fun onError(error: QonversionError) {
-                                                    Toast
-                                                        .makeText(
-                                                            activity,
-                                                            "Purchase failed: ${error.description}, ${error.additionalMessage}",
-                                                            Toast.LENGTH_LONG
-                                                        )
-                                                        .show()
-                                                }
 
-                                                override fun onSuccess(permissions: Map<String, QPermission>) {
-                                                    Toast
-                                                        .makeText(
-                                                            activity,
-                                                            "Purchase successful",
-                                                            Toast.LENGTH_LONG
-                                                        )
-                                                        .show()
-                                                    qonversionViewModel.updatePermissions()
-                                                }
-                                            }
-                                        )
-                                    }
-                                    .padding(16.dp)
-                            ) {
-                                Column() {
-                                    Text(text = "Yearly Plan", fontSize = 18.sp)
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(text = "$10/year, after free trail")
-                                }
+                Spacer(modifier = Modifier.fillMaxHeight(0.6f))
+
+                LazyColumn(modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    items(products) { product ->
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(padding)
+                        ) {
+                            Text(text = "${product.currencyCode.toString()} ${product.localizedPrice} / ${product.localizedSubscriptionPeriod}",
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center)
+                            ExtendedFloatingActionButton(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                                onClick = { /*TODO*/ }) {
+                                Text(text = "Subscribe")
                             }
                         }
+
                     }
                 }
             }
-
-        }
-    )
+        })
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -381,113 +313,86 @@ fun MainBody(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 32.dp)
-                ) {
-                    Text(text = "Menu",
-                        fontSize = 32.sp,
-                        modifier = Modifier.padding(start = 30.dp))
+    ModalNavigationDrawer(drawerState = drawerState, drawerContent = {
+        ModalDrawerSheet {
+            Column(verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 32.dp)) {
+                Text(text = "Menu", fontSize = 32.sp, modifier = Modifier.padding(start = 30.dp))
 
 
-                    Column() {
-                        Text(text = "Account Management",
-                            modifier = Modifier.padding(start = 30.dp, top = 32.dp, end = 32.dp))
-                        Spacer(Modifier.height(12.dp))
+                Column() {
+                    Text(text = "Account Management",
+                        modifier = Modifier.padding(start = 30.dp, top = 32.dp, end = 32.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                        NavigationDrawerItem(
-                            icon = {
-                                Icon(painter = painterResource(id = R.drawable.baseline_logout_24),
-                                    contentDescription = "")
-                            },
-                            label = { Text("Sign out") },
-                            selected = false,
-                            onClick = {
-                                scope.launch {
-                                    drawerState.close()
-                                    loginViewModel.signOut(auth, oneTapClient)
-                                }
-                            },
-                            modifier = Modifier.padding(
-                                NavigationDrawerItemDefaults.ItemPadding)
-                        )
-                    }
+                    NavigationDrawerItem(icon = {
+                        Icon(painter = painterResource(id = R.drawable.baseline_logout_24),
+                            contentDescription = "")
+                    }, label = { Text("Sign out") }, selected = false, onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            loginViewModel.signOut(auth, oneTapClient)
+                        }
+                    }, modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding))
                 }
             }
-        },
-        modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
-    ) {
+        }
+    }, modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)) {
         Material3AppTheme {
 
             // A surface container using the 'background' color from the theme
-            Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth())
-            {
+            Surface(color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth()) {
                 Scaffold(Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = { Text(text = "allBlue") },
-                            navigationIcon = {
-                                var menuStatus by remember {
-                                    mutableStateOf(false)
-                                }
-
-                                if (drawerState.isClosed) {
-                                    menuStatus = false
-                                }
-
-                                IconButton(onClick = {
-                                    if (drawerState.isClosed) {
-                                        menuStatus = true
-                                        scope.launch { drawerState.open() }
-                                    } else {
-                                        menuStatus = false
-                                        scope.launch { drawerState.close() }
-                                    }
-                                }
-                                ) {
-                                    if (menuStatus) {
-                                        Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
-                                            contentDescription = "General settings opened")
-                                    } else {
-                                        Icon(painter = painterResource(id = R.drawable.round_menu_24),
-                                            contentDescription = "General settings")
-                                    }
-                                }
-                            }
-                        )
-                    },
-                    content = { contentPadding ->
-                        Column(modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                        ) {
-                            Section1(name, address, contentPadding)
-                            Spacer(modifier = Modifier.padding(20.dp))
-                            Section2(
-                                getPairedDevices,
-                                PairedDevices,
-                                saveSelectedDevice,
-                                context)
-                            FAB(startService,
-                                stopService,
-                                serviceState,
-                                getServiceStatus,
-                                context,
-                                contentPadding)
+                    .fillMaxWidth(), topBar = {
+                    CenterAlignedTopAppBar(title = { Text(text = "allBlue") }, navigationIcon = {
+                        var menuStatus by remember {
+                            mutableStateOf(false)
                         }
+
+                        if (drawerState.isClosed) {
+                            menuStatus = false
+                        }
+
+                        IconButton(onClick = {
+                            if (drawerState.isClosed) {
+                                menuStatus = true
+                                scope.launch { drawerState.open() }
+                            } else {
+                                menuStatus = false
+                                scope.launch { drawerState.close() }
+                            }
+                        }) {
+                            if (menuStatus) {
+                                Icon(painter = painterResource(id = R.drawable.round_menu_open_24),
+                                    contentDescription = "General settings opened")
+                            } else {
+                                Icon(painter = painterResource(id = R.drawable.round_menu_24),
+                                    contentDescription = "General settings")
+                            }
+                        }
+                    })
+                }, content = { contentPadding ->
+                    Column(modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(16.dp)) {
+                        Section1(name, address, contentPadding)
+                        Spacer(modifier = Modifier.padding(20.dp))
+                        Section2(getPairedDevices, PairedDevices, saveSelectedDevice, context)
+                        FAB(startService,
+                            stopService,
+                            serviceState,
+                            getServiceStatus,
+                            context,
+                            contentPadding)
                     }
-                )
+                })
             }
         }
     }
@@ -519,32 +424,26 @@ fun Section1(
     contentPadding: PaddingValues,
 ) {
     Spacer(modifier = Modifier.padding(contentPadding))
-    OutlinedCard(
-        modifier = Modifier
-            .fillMaxWidth(),
-        content = {
-            Column(modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()) {
-                Text(text = stringResource(id = R.string.selected_device), fontSize = 24.sp,
-                    color = MaterialTheme.colorScheme.primary)
-                Row(modifier = Modifier
-                    .padding(vertical = 32.dp)
-                    .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = bluetoothName,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .width(170.dp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(text = bluetoothAddress, textAlign = TextAlign.End)
-                }
+    OutlinedCard(modifier = Modifier.fillMaxWidth(), content = {
+        Column(modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()) {
+            Text(text = stringResource(id = R.string.selected_device),
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.primary)
+            Row(modifier = Modifier
+                .padding(vertical = 32.dp)
+                .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = bluetoothName,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.width(170.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis)
+                Text(text = bluetoothAddress, textAlign = TextAlign.End)
             }
         }
-    )
+    })
 }
 
 @Composable
@@ -556,26 +455,19 @@ fun Section2(
 ) {
 
 
-    val bluetoothPermission =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            rememberMultiplePermissionsState(listOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT)
-            )
-        } else {
-            null
-        }
+    val bluetoothPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        rememberMultiplePermissionsState(listOf(Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT))
+    } else {
+        null
+    }
 
-    val permissionRevoked =
-        (bluetoothPermission?.permissions?.size
-            ?: 0) == (bluetoothPermission?.revokedPermissions?.size ?: 0)
+    val permissionRevoked = (bluetoothPermission?.permissions?.size
+        ?: 0) == (bluetoothPermission?.revokedPermissions?.size ?: 0)
 
     androidx.compose.material3.Card {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(text = stringResource(id = R.string.paired_bluetooth_devices),
-                fontSize = 24.sp)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = stringResource(id = R.string.paired_bluetooth_devices), fontSize = 24.sp)
             Text(text = stringResource(id = R.string.select_device_that_you_want_to_connect_to),
                 color = MaterialTheme.colorScheme.secondary)
 
@@ -589,18 +481,14 @@ fun Section2(
                 LazyColumn(modifier = Modifier
                     .height(300.dp)
                     .padding(vertical = 16.dp)
-                    .fillMaxWidth()
-                ) {
+                    .fillMaxWidth()) {
                     items(pairedDevices) { pairedDevice ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    saveSelectedDevice(pairedDevice)
-                                    Log.d("Row1", "Clicked $pairedDevice")
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                saveSelectedDevice(pairedDevice)
+                                Log.d("Row1", "Clicked $pairedDevice")
+                            }, horizontalArrangement = Arrangement.SpaceBetween) {
                             if (ActivityCompat.checkSelfPermission(context,
                                     Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
                             ) {
@@ -626,11 +514,8 @@ fun Section2(
                     }
                 }
             } else {
-                Text(
-                    text = stringResource(id = R.string.enable_nearby_scanning_permission),
-                    modifier = Modifier
-                        .padding(vertical = 16.dp)
-                )
+                Text(text = stringResource(id = R.string.enable_nearby_scanning_permission),
+                    modifier = Modifier.padding(vertical = 16.dp))
             }
         }
     }
@@ -660,15 +545,12 @@ fun FAB(
 
     Log.d("Service", "btnText: $btnText")
 
-    Row(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+    Row(modifier = Modifier
+        .fillMaxHeight()
+        .fillMaxWidth(),
         horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        ExtendedFloatingActionButton(
-            containerColor = MaterialTheme.colorScheme.tertiary,
+        verticalAlignment = Alignment.Bottom) {
+        ExtendedFloatingActionButton(containerColor = MaterialTheme.colorScheme.tertiary,
             onClick = {
                 if (btnText == initText) {
                     btnText = elseText
@@ -678,8 +560,7 @@ fun FAB(
                     stopService(context)
                 }
             }) {
-            Text(text = stringResource(id = btnText),
-                color = MaterialTheme.colorScheme.onTertiary)
+            Text(text = stringResource(id = btnText), color = MaterialTheme.colorScheme.onTertiary)
         }
     }
 }
@@ -695,72 +576,66 @@ fun LoginScreen(
     auth: FirebaseAuth,
 ) {
 
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
-            Log.e("Credentials", credential.toString())
-            val idToken = credential.googleIdToken
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
+                Log.e("Credentials", credential.toString())
+                val idToken = credential.googleIdToken
 
-            if (idToken != null) {
-                // Got an ID token from Google. Use it to authenticate
-                // with your backend.
+                if (idToken != null) {
+                    // Got an ID token from Google. Use it to authenticate
+                    // with your backend.
 
-                when {
-                    idToken != null -> {
-                        // Got an ID token from Google. Use it to authenticate
-                        // with Firebase.
-                        val firebaseCredential = getCredential(idToken, null)
-                        auth.signInWithCredential(firebaseCredential)
-                            .addOnCompleteListener(activity) { task ->
-                                if (task.isSuccessful) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d(TAG_FIREBASE, "signInWithCredential:success")
-                                    loginViewModel.loginStatus(auth)
-                                    loginViewModel.qonversionSignin(auth)
-                                    val user = auth.currentUser
-                                    //                                updateUI(user)
-                                } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.w(TAG_FIREBASE,
-                                        "signInWithCredential:failure",
-                                        task.exception)
-                                    //                                updateUI(null)
+                    when {
+                        idToken != null -> {
+                            // Got an ID token from Google. Use it to authenticate
+                            // with Firebase.
+                            val firebaseCredential = getCredential(idToken, null)
+                            auth.signInWithCredential(firebaseCredential)
+                                .addOnCompleteListener(activity) { task ->
+                                    if (task.isSuccessful) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        Log.d(TAG_FIREBASE, "signInWithCredential:success")
+                                        loginViewModel.loginStatus(auth)
+                                        val user = auth.currentUser
+                                        //                                updateUI(user)
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Log.w(TAG_FIREBASE,
+                                            "signInWithCredential:failure",
+                                            task.exception)
+                                        //                                updateUI(null)
+                                    }
+                                }.addOnFailureListener(activity) { e ->
+                                    Log.e("FIREBASE", "Failure: $e")
                                 }
-                            }
-                            .addOnFailureListener(activity) { e ->
-                                Log.e("FIREBASE", "Failure: $e")
-                            }
+                        }
+                        else -> {
+                            // Shouldn't happen.
+                            Log.d(TAG_GOOGLE, "No ID token!")
+                        }
                     }
-                    else -> {
-                        // Shouldn't happen.
-                        Log.d(TAG_GOOGLE, "No ID token!")
-                    }
+                    Log.d("LOG", idToken)
+                } else {
+                    Log.d("LOG", "Null Token 5")
                 }
-                Log.d("LOG", idToken)
             } else {
-                Log.d("LOG", "Null Token 5")
+                Log.e("Response", "No results were not ok ${result.resultCode}")
             }
-        } else {
-            Log.e("Response", "No results were not ok ${result.resultCode}")
         }
-    }
 
     Material3AppTheme() {
         Scaffold { padding ->
             padding
-            Column(
-                modifier = Modifier.fillMaxSize(),
+            Column(modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+                horizontalAlignment = Alignment.CenterHorizontally) {
                 val scope = rememberCoroutineScope()
                 Surface(
                     onClick = {
                         scope.launch {
-                            loginViewModel.signIn(
-                                activity,
+                            loginViewModel.signIn(activity,
                                 auth,
                                 oneTapClient,
                                 signInRequest,
@@ -776,11 +651,10 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.primaryContainer),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(
-                                start = 12.dp,
-                                end = 16.dp,
-                            ),
+                        modifier = Modifier.padding(
+                            start = 12.dp,
+                            end = 16.dp,
+                        ),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                     ) {
@@ -814,22 +688,13 @@ fun DefaultPreview() {
     // Google Onetap Sign in
     val oneTapClient = Identity.getSignInClient(context)
     val signInRequest = BeginSignInRequest.builder()
-        .setGoogleIdTokenRequestOptions(
-            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                .setSupported(true)
-                .setServerClientId(context.getString(R.string.firebase_client_id))
-                .setFilterByAuthorizedAccounts(true)
-                .build())
-        .setAutoSelectEnabled(true)
-        .build()
+        .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+            .setSupported(true).setServerClientId(context.getString(R.string.firebase_client_id))
+            .setFilterByAuthorizedAccounts(true).build()).setAutoSelectEnabled(true).build()
     val signUpRequest = BeginSignInRequest.builder()
-        .setGoogleIdTokenRequestOptions(
-            BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                .setSupported(true)
-                .setServerClientId(context.getString(R.string.firebase_client_id))
-                .setFilterByAuthorizedAccounts(false)
-                .build())
-        .build()
+        .setGoogleIdTokenRequestOptions(BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+            .setSupported(true).setServerClientId(context.getString(R.string.firebase_client_id))
+            .setFilterByAuthorizedAccounts(false).build()).build()
 
     Main(
         context,
@@ -849,10 +714,9 @@ fun DefaultPreview() {
         auth = auth,
         loginViewModel = viewModel(),
         loginState = UserState(),
-        qonversionViewModel = viewModel(),
-        qonversionState = QonversionState(),
         loginStatus = false,
-        activeSubscription = false,
-        loadedOfferings = emptyList(),
+        paywalls = null,
+        premiumAccess = false,
+        products = emptyList(),
     )
 }
