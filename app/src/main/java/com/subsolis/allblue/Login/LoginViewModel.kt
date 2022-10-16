@@ -9,6 +9,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adapty.Adapty
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +28,7 @@ data class UserState(
     val LoggedIn: Boolean = false,
     val firebaseAuth: FirebaseAuth = viewModelAuth,
     val cancelled: Boolean = false,
+    val adaptyLoggedIn: Boolean? = null,
 )
 
 // TAGS
@@ -65,8 +67,17 @@ class LoginViewModel @Inject constructor(
         oneTapClient.beginSignIn(signInRequest)
             .addOnSuccessListener(activity) { result ->
                 try {
-                    val intentSenderRequest = IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
                     launcher.launch(intentSenderRequest)
+                    Adapty.identify(auth.uid.toString()) { error ->
+                        if (error == null) {
+                            // successful identify
+                            _viewstate.value = _viewstate.value.copy(
+                                adaptyLoggedIn = true
+                            )
+                        }
+                    }
                     Log.d(TAG_SIGNIN, "Started One Tap Sign In")
                 } catch (e: IntentSender.SendIntentException) {
                     Log.e(TAG_SIGNIN, "Couldn't start One Tap UI: ${e.localizedMessage}")
@@ -97,8 +108,17 @@ class LoginViewModel @Inject constructor(
             auth.signOut()
             val currentLoginStatus = repositoryImpl.loggedInStatus(auth)
             oneTapClient.signOut().await()
+            Adapty.logout { error ->
+                if (error == null) {
+                    // successful logout
+                    _viewstate.value = _viewstate.value.copy(
+                        adaptyLoggedIn = false,
+                    )
+                }
+            }
+
             _viewstate.value = _viewstate.value.copy(
-                LoggedIn = currentLoginStatus
+                LoggedIn = currentLoginStatus,
             )
 
             Log.d("Sign Out", "Log in status: $currentLoginStatus")

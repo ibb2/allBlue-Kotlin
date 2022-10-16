@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -148,9 +149,12 @@ class MainActivity2 : ComponentActivity() {
 
             // Adapty.io ViewModel and States
             val adaptyViewModel: AdaptyViewModel = viewModel()
+            val subscribed: Boolean = adaptyViewModel.viewState.value.subscribed
             val premiumAccess = adaptyViewModel.viewState.value.premiumAccessLevel
             val paywalls: PaywallModel? = adaptyViewModel.viewState.value.paywalls
             val products: List<ProductModel> = adaptyViewModel.viewState.value.products
+
+            Toast.makeText(context, premiumAccess.toString(), Toast.LENGTH_LONG).show()
 
             Main(
                 context,
@@ -172,6 +176,8 @@ class MainActivity2 : ComponentActivity() {
                 loginState,
                 loginStatus,
                 // Adapty.io
+                adaptyViewModel,
+                subscribed,
                 premiumAccess,
                 paywalls,
                 products,
@@ -206,6 +212,8 @@ fun Main(
     loginViewModel: LoginViewModel,
     loginState: UserState,
     loginStatus: Boolean,
+    adaptyViewModel: AdaptyViewModel,
+    subscribed: Boolean,
     premiumAccess: Boolean,
     paywalls: PaywallModel?,
     products: List<ProductModel>,
@@ -213,8 +221,8 @@ fun Main(
 
     if (loginStatus) {
         LoginScreen(activity, oneTapClient, signInRequest, signUpRequest, loginViewModel, auth)
-    } else if (!premiumAccess) {
-        SubscriptionUi(activity = activity, premiumAccess, paywalls, products)
+    } else if (!subscribed) {
+        SubscriptionUi(activity, adaptyViewModel, premiumAccess, paywalls, products)
     } else {
         MainBody(
             context,
@@ -238,6 +246,7 @@ fun Main(
 @Composable
 fun SubscriptionUi(
     activity: Activity,
+    adaptyViewModel: AdaptyViewModel,
     premiumAccess: Boolean,
     paywalls: PaywallModel?,
     products: List<ProductModel>,
@@ -281,7 +290,7 @@ fun SubscriptionUi(
                             ExtendedFloatingActionButton(modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                                onClick = { /*TODO*/ }) {
+                                onClick = { adaptyViewModel.makePurchase(activity, product) }) {
                                 Text(text = "Subscribe")
                             }
                         }
@@ -715,6 +724,8 @@ fun DefaultPreview() {
         loginViewModel = viewModel(),
         loginState = UserState(),
         loginStatus = false,
+        adaptyViewModel = viewModel(),
+        subscribed = false,
         paywalls = null,
         premiumAccess = false,
         products = emptyList(),

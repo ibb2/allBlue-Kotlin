@@ -1,5 +1,6 @@
 package com.subsolis.allblue.Adapty
 
+import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.adapty.Adapty
@@ -24,13 +25,18 @@ class AdaptyViewModel @Inject constructor(
 
     init {
         remotePaywall()
+        setPermissions()
     }
 
-    fun setPermission(boolean: Boolean) {
-        _viewstate.value = _viewstate.value.copy(
-            subscribed = boolean,
-            premiumAccessLevel = boolean
-        )
+    fun setPermissions() {
+        Adapty.getPurchaserInfo { purchaserInfo, error ->
+            if (error == null) {
+                _viewstate.value = _viewstate.value.copy(
+                    subscribed = purchaserInfo?.accessLevels?.entries?.firstOrNull()?.value?.isActive == true
+                )
+            }
+        }
+
     }
 
     fun remotePaywall() {
@@ -42,6 +48,22 @@ class AdaptyViewModel @Inject constructor(
                     paywalls = paywalls?.firstOrNull(),
                     products = paywalls!!.firstOrNull()!!.products
                 )
+            }
+        }
+    }
+
+    fun makePurchase(a: Activity, p: ProductModel) {
+        Adapty.makePurchase(a,
+            p) { purchaserInfo, purchaseToken, googleValidationResult, product, error ->
+            if (error == null) {
+                // "premium" is an identifier of default access level
+                if (purchaserInfo?.accessLevels?.get("premium")?.isActive == true) {
+                    // grant access to premium features
+                    _viewstate.value = _viewstate.value.copy(
+                        premiumAccessLevel = purchaserInfo.accessLevels.entries.firstOrNull()?.value?.isActive == true,
+                        subscribed = purchaserInfo.accessLevels.entries.firstOrNull()?.value?.isActive == true,
+                    )
+                }
             }
         }
     }
