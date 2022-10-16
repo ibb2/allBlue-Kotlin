@@ -32,7 +32,7 @@ class AdaptyViewModel @Inject constructor(
         Adapty.getPurchaserInfo { purchaserInfo, error ->
             if (error == null) {
                 _viewstate.value = _viewstate.value.copy(
-                    subscribed = purchaserInfo?.accessLevels?.entries?.firstOrNull()?.value?.isActive == true
+                    subscribed = purchaserInfo!!.accessLevels["premium"]?.isActive == true
                 )
             }
         }
@@ -60,8 +60,8 @@ class AdaptyViewModel @Inject constructor(
                 if (purchaserInfo?.accessLevels?.get("premium")?.isActive == true) {
                     // grant access to premium features
                     _viewstate.value = _viewstate.value.copy(
-                        premiumAccessLevel = purchaserInfo.accessLevels.entries.firstOrNull()?.value?.isActive == true,
-                        subscribed = purchaserInfo.accessLevels.entries.firstOrNull()?.value?.isActive == true,
+                        premiumAccessLevel = purchaserInfo.accessLevels["premium"]?.isActive == true,
+                        subscribed = purchaserInfo.accessLevels["premium"]?.isActive == true,
                     )
                 }
             }
