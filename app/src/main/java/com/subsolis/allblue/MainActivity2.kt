@@ -13,7 +13,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -154,8 +153,6 @@ class MainActivity2 : ComponentActivity() {
             val paywalls: PaywallModel? = adaptyViewModel.viewState.value.paywalls
             val products: List<ProductModel> = adaptyViewModel.viewState.value.products
 
-            Toast.makeText(context, premiumAccess.toString(), Toast.LENGTH_LONG).show()
-
             Main(
                 context,
                 activity,
@@ -219,7 +216,7 @@ fun Main(
     products: List<ProductModel>,
 ) {
 
-    if (loginStatus) {
+    if (!loginStatus) {
         LoginScreen(activity, oneTapClient, signInRequest, signUpRequest, loginViewModel, auth)
     } else if (!subscribed) {
         SubscriptionUi(activity, adaptyViewModel, premiumAccess, paywalls, products)
