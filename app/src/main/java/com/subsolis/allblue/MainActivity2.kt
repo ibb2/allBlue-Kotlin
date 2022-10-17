@@ -291,7 +291,6 @@ fun SubscriptionUi(
                                 Text(text = "Subscribe")
                             }
                         }
-
                     }
                 }
             }

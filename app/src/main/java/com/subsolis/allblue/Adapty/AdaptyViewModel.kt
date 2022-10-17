@@ -44,10 +44,16 @@ class AdaptyViewModel @Inject constructor(
             if (error == null) {
                 // retrieve the products from paywalls
 
+                val paywall = paywalls?.firstOrNull()
+                val product = paywall!!.products
+
                 _viewstate.value = _viewstate.value.copy(
-                    paywalls = paywalls?.firstOrNull(),
-                    products = paywalls!!.firstOrNull()!!.products
+                    paywalls = paywall,
+                    products = product,
                 )
+
+                // Log Paywalls
+                Adapty.logShowPaywall(paywall)
             }
         }
     }
