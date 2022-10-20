@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.adapty.models.PaywallModel
 import com.adapty.models.ProductModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -249,16 +250,40 @@ fun SubscriptionUi(
     products: List<ProductModel>,
 ) {
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(), content = { padding ->
-            Column(verticalArrangement = Arrangement.Center,
+    Scaffold(modifier = Modifier.fillMaxSize(), content = { padding ->
+        Column(verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+                .padding(16.dp)) {
+
+            var fillBool by remember {
+                mutableStateOf(true)
+            }
+
+            if (paywalls?.customPayload?.get("header_image") as? String != null) {
+
+                fillBool = true
+
+                AsyncImage(model = paywalls?.customPayload?.get("header_image").toString(),
+                    contentDescription = "50% discount with confetti overlayed",
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    alignment = Alignment.Center)
+            } else {
+                Column(verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally) {}
+
+                fillBool = false
+            }
+
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize()) {
-                Spacer(modifier = Modifier
-                    .padding(padding)
-                    .fillMaxHeight(0.2f))
-                Column(modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxHeight(0.5f)
+                    .weight(0.5f, fillBool),
+                ) {
+                Column(verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = "allBlue Premium Access",
                         fontSize = 28.sp,
@@ -270,23 +295,18 @@ fun SubscriptionUi(
                     Text(text = "Cancel whenever.", textAlign = TextAlign.Center)
                 }
 
-                Spacer(modifier = Modifier.fillMaxHeight(0.6f))
-
-                LazyColumn(modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
                     items(products) { product ->
-                        Column(
-                            verticalArrangement = Arrangement.Center,
+                        Column(verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(padding)
-                        ) {
+                            modifier = Modifier.padding(padding)) {
                             Text(text = "${product.currencyCode.toString()} ${product.localizedPrice} / ${product.localizedSubscriptionPeriod}",
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center)
-                            ExtendedFloatingActionButton(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            ExtendedFloatingActionButton(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                                 onClick = { adaptyViewModel.makePurchase(activity, product) }) {
                                 Text(text = "Subscribe")
                             }
@@ -294,7 +314,8 @@ fun SubscriptionUi(
                     }
                 }
             }
-        })
+        }
+    })
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
