@@ -8,8 +8,10 @@ import android.app.Activity.RESULT_OK
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -30,16 +32,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.adapty.models.PaywallModel
@@ -253,7 +258,8 @@ fun SubscriptionUi(
     Scaffold(modifier = Modifier.fillMaxSize(), content = { padding ->
         Column(verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(16.dp)) {
 
             var fillBool by remember {
@@ -266,8 +272,7 @@ fun SubscriptionUi(
 
                 AsyncImage(model = paywalls?.customPayload?.get("header_image").toString(),
                     contentDescription = "50% discount with confetti overlayed",
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     alignment = Alignment.Center)
             } else {
                 Column(verticalArrangement = Arrangement.Top,
@@ -282,7 +287,7 @@ fun SubscriptionUi(
                 modifier = Modifier
                     .fillMaxHeight(0.5f)
                     .weight(0.5f, fillBool),
-                ) {
+            ) {
                 Column(verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = "allBlue Premium Access",
@@ -306,7 +311,9 @@ fun SubscriptionUi(
                             Text(text = "${product.currencyCode.toString()} ${product.localizedPrice} / ${product.localizedSubscriptionPeriod}",
                                 fontSize = 16.sp,
                                 textAlign = TextAlign.Center)
-                            ExtendedFloatingActionButton(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                            ExtendedFloatingActionButton(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
                                 onClick = { adaptyViewModel.makePurchase(activity, product) }) {
                                 Text(text = "Subscribe")
                             }
@@ -655,44 +662,71 @@ fun LoginScreen(
         Scaffold { padding ->
             padding
             Column(modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                val scope = rememberCoroutineScope()
-                Surface(
-                    onClick = {
-                        scope.launch {
-                            loginViewModel.signIn(activity,
-                                auth,
-                                oneTapClient,
-                                signInRequest,
-                                signUpRequest,
-                                launcher)
-                            loginViewModel.loginStatus(auth)
-                        }
-                    },
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    shadowElevation = 0.dp,
-                    shape = RoundedCornerShape(5.dp),
-                    border = BorderStroke(width = 1.dp,
-                        color = MaterialTheme.colorScheme.primaryContainer),
-                ) {
-                    Row(
-                        modifier = Modifier.padding(
-                            start = 12.dp,
-                            end = 16.dp,
-                        ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Bottom) {
+                Column(modifier = Modifier
+                    .fillMaxHeight(0.5f)
+                    .fillMaxWidth(1f)
+                    .weight(weight = 1f, fill = false),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
 
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_google_logo),
-                            contentDescription = "SignInButton",
-                            tint = androidx.compose.ui.graphics.Color.Unspecified,
-                        )
+                        val scope = rememberCoroutineScope()
+                        Surface(
+                            onClick = {
+                                scope.launch {
+                                    loginViewModel.signIn(activity,
+                                        auth,
+                                        oneTapClient,
+                                        signInRequest,
+                                        signUpRequest,
+                                        launcher)
+                                    loginViewModel.loginStatus(auth)
+                                }
+                            },
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            shadowElevation = 0.dp,
+                            shape = RoundedCornerShape(5.dp),
+                            border = BorderStroke(width = 1.dp,
+                                color = MaterialTheme.colorScheme.primaryContainer),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(
+                                    start = 12.dp,
+                                    end = 16.dp,
+                                ),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
 
-                        Text(text = "Sign in with Google")
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_google_logo),
+                                    contentDescription = "SignInButton",
+                                    tint = androidx.compose.ui.graphics.Color.Unspecified,
+                                )
+
+                                Text(text = "Sign in with Google")
+                            }
+                        }
                     }
+
+                    Column(
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    ) {
+                        val addresses: Array<String> = arrayOf("ibbs.dev@gmail.com")
+                        Text(text = "Contact Me", modifier = Modifier.clickable {
+                            val intent = Intent(Intent.ACTION_SENDTO)
+                            intent.setData(Uri.parse("mailto:")) // only email apps should handle this
+                            intent.putExtra(Intent.EXTRA_EMAIL, addresses)
+
+                            val context = activity as Context
+
+                            ContextCompat.startActivity(context, intent, null)
+                        }, textDecoration = TextDecoration.Underline, color = Color.Blue)
+                    }
+
                 }
             }
         }
