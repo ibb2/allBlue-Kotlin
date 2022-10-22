@@ -89,6 +89,8 @@ dependencies {
     implementation "com.google.firebase:firebase-auth-ktx"
     implementation "com.google.firebase:firebase-firestore-ktx"
     implementation 'com.google.firebase:firebase-analytics-ktx'
+    // Add the dependency for the Realtime Database library
+    implementation 'com.google.firebase:firebase-database-ktx'
 
     //Play Services
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$play_services_version"
