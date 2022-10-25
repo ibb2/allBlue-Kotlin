@@ -152,12 +152,21 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences-rxjava3:$datastore")
 
     // Google Play Billing dependencies
-//    implementation("com.android.billingclient:billing:$play_billing_version")
-//    implementation("com.android.billingclient:billing-ktx:$play_billing_version")
+    //    implementation("com.android.billingclient:billing:$play_billing_version")
+    //    implementation("com.android.billingclient:billing-ktx:$play_billing_version")
 
     // Adapty.io
     implementation 'com.github.adaptyteam:AdaptySDK-Android:1.11.0'
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.2.2")
+
+    // Ktor Client
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-websockets:$ktor_version")
+
+    // Json Serialization
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
+
 }
