@@ -4,6 +4,7 @@ plugins {
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
     id 'com.google.gms.google-services'
+    id "kotlinx-serialization"
 }
 
 android {
@@ -166,7 +167,8 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-websockets:$ktor_version")
 
-    // Json Serialization
+    // Json Serialization'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
 
 }
